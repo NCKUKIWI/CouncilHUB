@@ -20,10 +20,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: false
 }));
+app.use(require("./middleware"));
 app.use("/user",require("./routes/user"));
 app.use("/proposal",require("./routes/proposal"));
 app.use("/delibration",require("./routes/delibration"));
-app.use(require("./middleware"));
+
 
 app.get('/', function(req, res){
     res.send(render('./dist/index.html'));
