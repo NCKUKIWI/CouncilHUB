@@ -4,7 +4,7 @@ import router from './router'
 import store from './store'
 
 //mock api
-import '../mock'
+import '../routes'
 
 // css
 import './styles/style.scss';
