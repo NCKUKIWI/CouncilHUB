@@ -20,9 +20,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: false
 }));
-app.use("/user",require("./api/routes/user"));
-app.use("/proposal",require("./api/routes/proposal"));
-app.use("/delibration",require("./api/routes/delibration"));
+app.use("/user",require("./routes/user"));
+app.use("/proposal",require("./routes/proposal"));
+app.use("/delibration",require("./routes/delibration"));
 app.use(require("./middleware"));
 
 app.get('/', function(req, res){
