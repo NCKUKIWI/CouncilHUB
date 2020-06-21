@@ -21,9 +21,9 @@ app.use(bodyParser.urlencoded({
     extended: false
 }));
 app.use(require("./middleware"));
-app.use("/user",require("./routes/user"));
-app.use("/proposal",require("./routes/proposal"));
-app.use("/delibration",require("./routes/delibration"));
+app.use("/api/user",require("./routes/user"));
+app.use("/api/proposal",require("./routes/proposal"));
+app.use("/api/delibration",require("./routes/delibration"));
 
 
 app.get('/', function(req, res){
