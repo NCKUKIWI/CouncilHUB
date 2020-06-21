@@ -1,0 +1,58 @@
+// @import '~bootstrap/scss/bootstrap-grid';
+// 通用的css
+*{
+  box-sizing: border-box;
+  font-family: '微軟正黑體', Helvetica, Arial, sans-serif;
+}
+
+body{
+  margin: 0;
+}
+
+h1,h2,h3,h4,h5,h6{
+  // margin-top: 0;
+  // margin-bottom: 0.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+h1{
+  font-size: $text_l;     //ppt24
+}
+h2{
+  font-size: $text_lm;    //ppt20
+}
+h3{
+  font-size: $text_m;     //ppt18
+}
+h4{
+  font-size: $text_ms;    //ppt16
+}
+h5{
+  font-size: $text_s;     //ppt14
+}
+p{
+  font-size: $text;
+  color: $title1;
+}
+
+li{
+  list-style-type: none;
+}
+
+.window{
+  position: fixed;
+  z-index: 400;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  // width: 100vw;
+  background: #f2f2f2dd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+::placeholder{
+  color: $notes;
+}
