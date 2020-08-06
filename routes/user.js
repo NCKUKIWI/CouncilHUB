@@ -10,7 +10,11 @@ router.post('/signup', function (req, res) {
         "email": req.body["email"],
         "name": req.body["name"],
         "password": req.body["password"],
-        "position": req.body["position"]
+    }
+
+    var data_position = {
+        "studentID": req.body["studentId"],
+        "name": req.body["position"]
     }
 
     console.log(data);
@@ -20,7 +24,16 @@ router.post('/signup', function (req, res) {
             console.log(err);
             res.status(400).send("fail");
         } else {
-            res.status(200).send("success");
+            db.Insert("position", data_position, function (err, result) {
+                if (err) {
+                    console.log(err);
+                    res.status(400).send("fail");
+                }
+                else{
+                    res.status(200).send("success");
+                }
+            })
+            
         }
     })
 })
@@ -30,16 +43,18 @@ router.post('/login', function (req, res) {
     var pw = req.body.password;
 
 
-    db.Query("SELECT password, position FROM `user` WHERE studentID='" + ID + "'", function (result, err) {
+    db.Query("SELECT password FROM `user` WHERE studentID='" + ID + "'", function (result, err) {
         if (err) {
             console.log(err);
         } else {
             if (pw == result[0]["password"]) {
-                var data = {
-                    "studentID": ID,
-                    "position": result[0].position
-                }
-                res.status(200).send(data);
+                db.Query("SELECT name FROM `position` WHERE studentID ='" + ID + "'", function (result, err) {
+                    var data = {
+                        "studentID": ID,
+                        "position": result[0].position
+                    }
+                    res.status(200).send(data);
+                })
             } else {
                 res.sendStatus(403);
             }
