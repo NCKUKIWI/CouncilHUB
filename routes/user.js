@@ -23,17 +23,22 @@ router.post('/signup', function (req, res) {
             console.log(err);
             res.status(400).send("fail");
         } else {
-            for(var i = 0; i<positionArray.length; i++){
-                data_position.name = positionArray[i];
-                db.Insert("position", data_position, function (err, result) {
-                    if (err) {
-                        console.log(err);
-                        res.status(400).send("fail");
-                    }
-                    else{
-                        res.status(200).send("success");
-                    }
-                })    
+            if(positionArray.length > 0){
+                for(var i = 0; i<positionArray.length; i++){
+                    data_position.name = positionArray[i];
+                    db.Insert("position", data_position, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            res.status(400).send("fail");
+                        }
+                        if (i = positionArray.length-1){
+                            res.status(200).send("success");
+                        }
+                    })    
+                }
+            }
+            else{
+                res.status(200).send("success");
             }
         }
     })
@@ -43,18 +48,18 @@ router.post('/login', function (req, res) {
     var ID = req.body.studentID;
     var pw = req.body.password;
 
-    db.Query("SELECT password FROM `user` WHERE studentID='" + ID + "'", function (result, err) {
+    db.Query("SELECT password FROM `user` WHERE studentID='" + ID + "'", function (password, err) {
         if (err) {
             console.log(err);
         } else {
-            if (pw == result[0]["password"]) {
-                db.Query("SELECT name FROM `position` WHERE studentID ='" + ID + "'", function (result, err) {
+            if (pw == password[0]["password"]) {
+                db.Query("SELECT name FROM `position` WHERE studentID ='" + ID + "'", function (name, err) {
                     var data = {
                         "studentID": ID,
                         "isLeader": false
                     }
-                    for(var i=0; i<result.length; i++){
-                        if(result[i]["name"] == "議長"){
+                    for(var i=0; i<name.length; i++){
+                        if(name[i]["name"] == "議長"){
                             data.isLeader = true;
                         }
                     }

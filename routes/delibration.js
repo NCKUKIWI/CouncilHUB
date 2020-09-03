@@ -3,19 +3,29 @@ var router = express.Router();
 var db = require('../models/db');
 
 router.get('/', function (req, res) {
-    var sql = 'SELECT * FROM delibration'
-    db.Query(sql, function (delibration, err) {
-        if (err) {
-            console.log(err);
-            res.sendStatus(400);
-        } else {
-            if (delibration.length == 0) {
-                res.status(404).send("Cannnot find.");
-            } else {
-                res.status(200).send(delibration);
+    var studentID = req.body["studentID"];
+    db.Query("SELECT name FROM `position` WHERE studentID ='" + studentID + "'", function (name, err) {
+        var filter = "";
+        for(var i=0; i<name.length; i++){
+            if(i>0){
+                filter += ","
             }
+            filter += "'" + name[i]["name"] + "'";
         }
-    });
+        var sql = "SELECT * FROM delibration where position in (" + filter + ")";
+        db.Query(sql, function (delibration, err) {
+            if (err) {
+                console.log(err);
+                res.sendStatus(400);
+            } else {
+                if (delibration.length == 0) {
+                    res.status(404).send("Cannnot find.");
+                } else {
+                    res.status(200).send(delibration);
+                }
+            }
+        });
+    })
 })
 // /delibration/deleteDelibration/:id
 router.post('/deleteDelibration/:delibrationID', function (req, res) {
@@ -75,18 +85,6 @@ router.post('/createDelibration', function (req, res) {
     } else {
         res.sendStatus(400)
     }
-})
-
-router.get('/:position', function (req, res) {
-    var position = req.params["position"].toString();
-    var sql = "SELECT * FROM delibration WHERE position = " + position
-    db.Query(sql, function (delibration) {
-        if (delibration.length == 0) {
-            res.sendStatus(204);
-        } else {
-            res.status(200).send(delibration);
-        }
-    });
 })
 
 router.post('/saveEditDelibration/:id', function (req, res) {
