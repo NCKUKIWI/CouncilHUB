@@ -3,37 +3,38 @@ var router = express.Router();
 var db = require('../models/db');
 
 router.post('/signup', function (req, res) {
+    var studentID = req.body["studentID"];
     var data = {
-        "studentID": req.body["studentID"],
+        "studentID": studentID,
         "department": req.body["department"],
         "grade": req.body["grade"],
         "email": req.body["email"],
         "name": req.body["name"],
         "password": req.body["password"],
-    }
-
+    };
+    var positionArray = req.body["position"];
     var data_position = {
-        "studentID": req.body["studentId"],
-        "name": req.body["position"]
-    }
-
-    console.log(data);
+        "studentID": studentID,
+        "name": ""
+    };
 
     db.Insert("user", data, function (err, result) {
         if (err) {
             console.log(err);
             res.status(400).send("fail");
         } else {
-            db.Insert("position", data_position, function (err, result) {
-                if (err) {
-                    console.log(err);
-                    res.status(400).send("fail");
-                }
-                else{
-                    res.status(200).send("success");
-                }
-            })
-            
+            for(var i = 0; i<positionArray.length; i++){
+                data_position.name = positionArray[i];
+                db.Insert("position", data_position, function (err, result) {
+                    if (err) {
+                        console.log(err);
+                        res.status(400).send("fail");
+                    }
+                    else{
+                        res.status(200).send("success");
+                    }
+                })    
+            }
         }
     })
 })
@@ -41,7 +42,6 @@ router.post('/signup', function (req, res) {
 router.post('/login', function (req, res) {
     var ID = req.body.studentID;
     var pw = req.body.password;
-
 
     db.Query("SELECT password FROM `user` WHERE studentID='" + ID + "'", function (result, err) {
         if (err) {
@@ -51,7 +51,12 @@ router.post('/login', function (req, res) {
                 db.Query("SELECT name FROM `position` WHERE studentID ='" + ID + "'", function (result, err) {
                     var data = {
                         "studentID": ID,
-                        "position": result[0].position
+                        "isLeader": false
+                    }
+                    for(var i=0; i<result.length; i++){
+                        if(result[i]["name"] == "議長"){
+                            data.isLeader = true;
+                        }
                     }
                     res.status(200).send(data);
                 })
