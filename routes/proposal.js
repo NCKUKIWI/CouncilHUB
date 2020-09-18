@@ -4,7 +4,7 @@ var db = require('../models/db');
 
 router.get('/:delibrationID', function (req, res) {
     var id = req.params.delibrationID;
-    db.Query('SELECT pName FROM proposal WHERE delibrationID =' + id, function (result) {
+    db.Query('SELECT name FROM proposal WHERE delibrationID =' + id, function (result) {
         if (result.length == 0) {
             res.send("None");
         } else {
@@ -13,20 +13,21 @@ router.get('/:delibrationID', function (req, res) {
     })
 })
 
-router.get('/createVote', function (req, res) {
-    var cName = req.body.cName;
-    var dID = req.body.delibrationID;
-    var pID = req.body.proposalID;
-    db.Query('INSERT case (cName,delibrationID,proposalID) VALUES (' + cName + ',' + dID + ',' + pID + ')', function (result) {
-        res.send({
-            caseID: result.insertID,
-            cName: cName
-        });
-    })
-})
+// router.get('/createVote', function (req, res) {
+//     var cName = req.body.cName;
+//     var dID = req.body.delibrationID;
+//     var pID = req.body.proposalID;
+//     db.Query('INSERT case (cName,delibrationID,proposalID) VALUES (' + cName + ',' + dID + ',' + pID + ')', function (result) {
+//         res.send({
+//             caseID: result.insertID,
+//             cName: cName
+//         });
+//     })
+// })
 
 
 router.post('/voteResults', function (req, res) {
+    //重構(資料庫改)
     var CID = req.body.caseID;
     db.Query('SELECT result FROM `vote` WHERE caseID=' + CID, function (votes, err) {
         if (err) {
@@ -78,13 +79,14 @@ router.post('/voteResults', function (req, res) {
         }
     })
 })
+
 router.get("/proposal/:delibrationID/:proposalID", function (req, res) {
     var condition = {
         "delibrationID": req.body["delibrationID"],
         "proposalID": req.body["proposalID"]
     };
 
-    var cols = ["dept", "reason", "description", "discussion"];
+    var cols = ["dept", "reason", "description", "discussion", "name"];
 
     db.FindbyColumn("proposal", cols, condition, function (err, result) {
         if (err) {
@@ -99,6 +101,7 @@ router.get("/proposal/:delibrationID/:proposalID", function (req, res) {
 })
 
 router.post('/resultsList', function (req, res) {
+    //重構(資料庫改)
     var CID = req.body["caseID"];
     db.Query('SELECT studentID, result FROM `vote` WHERE caseID=' + CID, function (votesInfo, err) {
         if (err) {
@@ -138,6 +141,7 @@ router.post('/resultsList', function (req, res) {
 })
 
 router.post('/vote', function (req, res) {
+    //重構(資料庫改)
     var caseID = req.body.caseID;
     var studentID = req.body.studentID;
     var result = req.body.result;
@@ -152,58 +156,59 @@ router.post('/vote', function (req, res) {
     });
 });
 
-router.post('/createProposal', function (req, res) {
+// router.post('/createProposal', function (req, res) {
 
-    if (req.body["delibrationID"] && req.body["dept"]) {
-        var data = {
-            "delibrationID": req.body["delibrationID"],
-            "dept": req.body["dept"],
-            "reason": req.body["reason"],
-            "description": req.body["description"],
-            "discussion": req.body["discussion"],
-        }
+//     if (req.body["delibrationID"] && req.body["dept"]) {
+//         var data = {
+//             "delibrationID": req.body["delibrationID"],
+//             "dept": req.body["dept"],
+//             "reason": req.body["reason"],
+//             "description": req.body["description"],
+//             "discussion": req.body["discussion"],
+//             "name": req.body["name"]
+//         }
 
-        db.Insert('proposal', data, function (err, result) {
-            if (err) {
-                console.log(err);
-                // res.send({
-                //     create: "fail"
-                // });
-                res.sendStatus(403)
+//         db.Insert('proposal', data, function (err, result) {
+//             if (err) {
+//                 console.log(err);
+//                 // res.send({
+//                 //     create: "fail"
+//                 // });
+//                 res.sendStatus(403)
 
-            } else {
-                res.sendStatus(201)
-            }
-        })
-    } else {
-        res.sendStatus(400)
-    }
-})
+//             } else {
+//                 res.sendStatus(201)
+//             }
+//         })
+//     } else {
+//         res.sendStatus(400)
+//     }
+// })
 
-router.post('/save/:delibrationid', function (req, res) {
-    var delibrationID = req.params.delibrationid;
-    var dept = req.body.dept;
-    var reason = req.body.reason;
-    var description = req.body.description;
-    var data = {
-        "delibrationID": delibrationID,
-        "dept": dept,
-        "reason": reason,
-        "description": description
-    }
+// router.post('/save/:delibrationid', function (req, res) {
+//     var delibrationID = req.params.delibrationid;
+//     var dept = req.body.dept;
+//     var reason = req.body.reason;
+//     var description = req.body.description;
+//     var data = {
+//         "delibrationID": delibrationID,
+//         "dept": dept,
+//         "reason": reason,
+//         "description": description
+//     }
 
-    db.Insert("proposal", data, function (err, result) {
-        if (err) {
-            console.log(err);
-            res.status(403).send();
-        }
-        else {
-            res.status(201).send();
-        }
-    })
+//     db.Insert("proposal", data, function (err, result) {
+//         if (err) {
+//             console.log(err);
+//             res.status(403).send();
+//         }
+//         else {
+//             res.status(201).send();
+//         }
+//     })
 
-    //res.status(201).send();
-    //status 要 send res才會出去
-})
+//     //res.status(201).send();
+//     //status 要 send res才會出去
+// })
 
 module.exports = router;
