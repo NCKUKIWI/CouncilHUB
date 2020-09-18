@@ -161,7 +161,7 @@ router.post('/saveEditProposals/:id', function (req, res) {
     })
 })
 
-router.get('/delibration/editProposals/:id', function(req, res){
+router.get('/editProposals/:id', function(req, res){
     var user_id = req.params.id
     var delibrationID = req.body.delibrationID;
 

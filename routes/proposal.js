@@ -80,7 +80,7 @@ router.post('/voteResults', function (req, res) {
     })
 })
 
-router.get("/proposal/:delibrationID/:proposalID", function (req, res) {
+router.get("/:delibrationID/:proposalID", function (req, res) {
     var condition = {
         "delibrationID": req.body["delibrationID"],
         "proposalID": req.body["proposalID"]
