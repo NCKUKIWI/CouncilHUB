@@ -2,8 +2,8 @@ var express = require('express');
 var router = express.Router();
 var db = require('../models/db');
 
-router.get('/', function (req, res) {
-    var studentID = req.body["studentID"];
+router.get('/:id', function (req, res) {
+    var studentID = req.params.id;
     db.Query("SELECT name FROM `position` WHERE studentID ='" + studentID + "'", function (name, err) {
         var filter = "";
         for(var i=0; i<name.length; i++){
@@ -161,7 +161,7 @@ router.post('/saveEditProposals/:id', function (req, res) {
     })
 })
 
-router.get('/editProposals/:id', function(req, res){
+router.post('/editProposals/:id', function(req, res){
     var user_id = req.params.id
     var delibrationID = req.body.delibrationID;
 
