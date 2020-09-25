@@ -82,7 +82,7 @@ router.post('/changeRole', function(req, res){
     
     db.Update('user', data, condition, function(err, result){
         if (err){
-            console.log(err)
+            console.log(err);
             res.sendStatus(400);
         }else{
             res.sendStatus(200);
@@ -100,10 +100,9 @@ router.post('/deleteRole', function(req, res){
     
     db.Update('user', data, condition, function(err, result){
         if (err){
-            console.log(err)
+            console.log(err);
             res.sendStatus(400);
         }else{
-            console.log("Update success")
             res.sendStatus(200);
         }
     })

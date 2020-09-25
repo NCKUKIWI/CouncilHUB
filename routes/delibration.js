@@ -2,13 +2,13 @@ var express = require('express');
 var router = express.Router();
 var db = require('../models/db');
 
-router.get('/:id', function (req, res) {
+router.get('/', function (req, res) {
     var studentID = req.params.id;
     db.Query("SELECT name FROM `position` WHERE studentID ='" + studentID + "'", function (name, err) {
         var filter = "";
         for(var i=0; i<name.length; i++){
             if(i>0){
-                filter += ","
+                filter += ",";
             }
             filter += "'" + name[i]["name"] + "'";
         }
@@ -43,7 +43,7 @@ router.get('/leader', function (req, res) {
 
 router.post('/deleteDelibration/:delibrationID', function (req, res) {
 
-    delibration_id = req.params.delibrationID
+    delibration_id = req.params.delibrationID;
 
     db.DeleteById('delibration', delibration_id, function (err, result) {
         if (err) {
@@ -89,13 +89,13 @@ router.post('/createDelibration', function (req, res) {
         db.Insert('delibration', data, function (err, result) {
             if (err) {
                 console.log(err);
-                res.sendStatus(400)
+                res.sendStatus(400);
             } else {
-                res.sendStatus(201)
+                res.sendStatus(201);
             }
         })
     } else {
-        res.sendStatus(400)
+        res.sendStatus(400);
     }
 })
 
@@ -118,22 +118,22 @@ router.post('/saveEditDelibration/:id', function (req, res) {
             db.Update('delibration', data_delibration, { "id": req.body.delibrationID }, function (err) {
                 if (err) {
                     console.log(err);
-                    res.sendStatus(400)
+                    res.sendStatus(400);
                 } else {
-                    res.sendStatus(201)
+                    res.sendStatus(201);
                 }
             })
         } 
         else {
-            res.sendStatus(403)
+            res.sendStatus(403);
         }
     })
 })
 
 
 router.post('/saveEditProposals/:id', function (req, res) {
-    var user_id = req.params.id
-    var proposals = req.body.proposal
+    var user_id = req.params.id;
+    var proposals = req.body.proposal;
 
     db.FindbyColumn('user', ['position'], { 'id': user_id }, function (result) {
         if (result[0]["position"] == "leader") {
@@ -148,26 +148,26 @@ router.post('/saveEditProposals/:id', function (req, res) {
                 db.Update('proposal', data_proposal, { "id": proposals[data]["proposalID"] }, function (err) {
                     if (err) {
                         console.log(err);
-                        res.sendStatus(400)
+                        res.sendStatus(400);
                     } else {
-                        res.sendStatus(201)
+                        res.sendStatus(201);
                     }
                 })
             }
         } 
         else {
-            res.sendStatus(403)
+            res.sendStatus(403);
         }
     })
 })
 
 router.post('/editProposals/:id', function(req, res){
-    var user_id = req.params.id
+    var user_id = req.params.id;
     var delibrationID = req.body.delibrationID;
 
     db.FindbyColumn('user', ['position'], { 'id': user_id }, function (result) {
         if (result[0]["position"] == "leader") {
-            var sql = "SELECT * FROM proposal where delibrationID = '" + delibrationID + "'"
+            var sql = "SELECT * FROM proposal where delibrationID = '" + delibrationID + "'";
             db.Query(sql, function (proposals, err) {
                 if (err) {
                     console.log(err);
@@ -182,7 +182,7 @@ router.post('/editProposals/:id', function(req, res){
             });
         } 
         else {
-            res.sendStatus(403)
+            res.sendStatus(403);
         }
     })
     

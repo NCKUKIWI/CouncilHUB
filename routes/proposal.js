@@ -27,11 +27,13 @@ router.get('/:delibrationID', function (req, res) {
 
 
 router.post('/voteResults', function (req, res) {
-    //重構(資料庫改)
-    var CID = req.body.caseID;
-    db.Query('SELECT result FROM `vote` WHERE caseID=' + CID, function (votes, err) {
+    var proposalID = req.body["proposalID"];
+    var isAmendment = req.body["amendment"];
+    var selectResultSql = "SELECT result FROM `vote` WHERE WHERE proposalID = " + proposalID + " and amendment = " + isAmendment;
+    db.Query(selectResultSql, function (votes, err) {
         if (err) {
             console.log(err);
+            res.sendStatus(400);
         } else {
             var agree = 0,
                 disagree = 0,
@@ -74,7 +76,7 @@ router.post('/voteResults', function (req, res) {
                         "percent": spoil_rate
                     }
                 };
-                res.json(data);
+                res.status(400).send(data);
             })
         }
     })
@@ -99,24 +101,22 @@ router.get("/:delibrationID/:proposalID", function (req, res) {
 })
 
 router.post('/resultsList', function (req, res) {
-    //重構(資料庫改)
-    var CID = req.body["caseID"];
-    db.Query('SELECT studentID, result FROM `vote` WHERE caseID=' + CID, function (votesInfo, err) {
+    var proposalID = req.body["proposalID"];
+    var isAmendment = req.body["amendment"];
+    var selectVoteSql = "SELECT studentID, result FROM `vote` WHERE proposalID = " + proposalID + " and amendment = " + isAmendment;
+    db.Query(selectVoteSql, function (votesInfo, err) {
         if (err) {
             console.log(err);
-            res.sendStatus(400)
+            res.sendStatus(400);
         } else {
             data = []
             for (let n in votesInfo) {
                 // console.log(votesInfo[n])
-
                 var column = ['department', 'uName'];
-                db.FindbyColumn('user', column, {
-                    "studentID": votesInfo[n]["studentID"]
-                }, function (userinfo, err) {
+                db.FindbyColumn('user', column, { "studentID": votesInfo[n]["studentID"] }, function (userinfo, err) {
                     if (err) {
                         console.log(err);
-                        res.sendStatus(400)
+                        res.sendStatus(400);
                     } else {
                         studentVoteInfo = {
                             "index": parseInt(n) + 1,
@@ -125,35 +125,47 @@ router.post('/resultsList', function (req, res) {
                             "voteResult": votesInfo[n]["result"]
                         }
                         // console.log("PPP: ", studentVoteInfo)
-                        data.push(studentVoteInfo)
+                        data.push(studentVoteInfo);
 
-                        if (n == votesInfo.length - 1)
-                            // res.send(data)
-                            res.status(200).send(data)
+                        if (n == votesInfo.length - 1){
+                            res.status(200).send(data);
+                        }
                     }
-
                 })
             }
         }
     })
 })
 
-router.post('/vote', function (req, res) {
-    //重構(資料庫改)
-    var caseID = req.body.caseID;
+router.post('/voteAmendment', function (req, res) {
+    var proposalID = req.body.proposalID;
     var studentID = req.body.studentID;
     var result = req.body.result;
-    var voteResultSql = "INSERT INTO vote (caseID, studentID, result) VALUES ( " + caseID + ", '" + studentID + "', " + result + ")";
+    var voteResultSql = "INSERT INTO vote (proposalID, studentID, result, amendment) VALUES ( " + proposalID + ", '" + studentID + "', " + result + ", 1)";
     db.Query(voteResultSql, function (voteResult, err) {
         if (err) {
             console.log(err);
             res.sendStatus(400);
         } else {
-            res.status(200).send("vote success");
+            res.sendStatus(200);
         }
     });
 });
 
+router.post('/voteResolution', function (req, res) {
+    var proposalID = req.body.proposalID;
+    var studentID = req.body.studentID;
+    var result = req.body.result;
+    var voteResultSql = "INSERT INTO vote (proposalID, studentID, result, amendment) VALUES ( " + proposalID + ", '" + studentID + "', " + result + ", 0)";
+    db.Query(voteResultSql, function (voteResult, err) {
+        if (err) {
+            console.log(err);
+            res.sendStatus(400);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
 // router.post('/createProposal', function (req, res) {
 
 //     if (req.body["delibrationID"] && req.body["dept"]) {
