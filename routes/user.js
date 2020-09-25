@@ -29,16 +29,16 @@ router.post('/signup', function (req, res) {
                     db.Insert("position", data_position, function (err, result) {
                         if (err) {
                             console.log(err);
-                            res.status(400).send("fail");
+                            res.sendStatus(400);
                         }
                         if (i = positionArray.length-1){
-                            res.status(200).send("success");
+                            res.sendStatus(200);
                         }
                     })    
                 }
             }
             else{
-                res.status(200).send("success");
+                res.sendStatus(200);
             }
         }
     })
@@ -83,10 +83,9 @@ router.post('/changeRole', function(req, res){
     db.Update('user', data, condition, function(err, result){
         if (err){
             console.log(err)
-            res.status(400).send("fail");
+            res.sendStatus(400);
         }else{
-            console.log("Update success")
-            res.status(200).send("sucess");
+            res.sendStatus(200);
         }
     })
 })
@@ -102,10 +101,10 @@ router.post('/deleteRole', function(req, res){
     db.Update('user', data, condition, function(err, result){
         if (err){
             console.log(err)
-            res.status(400).send("fail");
+            res.sendStatus(400);
         }else{
             console.log("Update success")
-            res.status(200).send("sucess");
+            res.sendStatus(200);
         }
     })
 })

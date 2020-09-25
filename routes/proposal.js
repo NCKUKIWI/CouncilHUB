@@ -86,16 +86,14 @@ router.get("/:delibrationID/:proposalID", function (req, res) {
         "proposalID": req.body["proposalID"]
     };
 
-    var cols = ["dept", "reason", "description", "discussion", "name"];
+    var cols = ["dept", "reason", "description", "discussion"];
 
     db.FindbyColumn("proposal", cols, condition, function (err, result) {
         if (err) {
             console.log(err);
-            res.status(400).send("fail");
+            res.sendStatus(400);
         } else {
-            console.log("success");
-            res.status(200).send("sucess");
-            res.send(result);
+            res.status(200).send(result);
         }
     })
 })

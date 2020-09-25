@@ -19,7 +19,7 @@ router.get('/:id', function (req, res) {
                 res.sendStatus(400);
             } else {
                 if (delibration.length == 0) {
-                    res.status(404).send("Cannnot find.");
+                    res.sendStatus(404);
                 } else {
                     res.status(200).send(delibration);
                 }
@@ -35,11 +35,7 @@ router.get('/leader', function (req, res) {
             console.log(err);
             res.sendStatus(400);
         } else {
-            if (delibration.length == 0) {
-                res.status(404).send("Cannnot find.");
-            } else {
-                res.status(200).send(delibrations);
-            }
+            res.status(200).send(delibrations);
         }
     });
 })
@@ -52,10 +48,10 @@ router.post('/deleteDelibration/:delibrationID', function (req, res) {
     db.DeleteById('delibration', delibration_id, function (err, result) {
         if (err) {
             console.log(err);
-            res.sendStatus(403);
+            res.sendStatus(400);
 
         } else {
-            res.status(200).send("success");
+            res.sendStatus(200);
         }
     })
 })
@@ -93,7 +89,7 @@ router.post('/createDelibration', function (req, res) {
         db.Insert('delibration', data, function (err, result) {
             if (err) {
                 console.log(err);
-                res.sendStatus(403)
+                res.sendStatus(400)
             } else {
                 res.sendStatus(201)
             }
@@ -122,12 +118,14 @@ router.post('/saveEditDelibration/:id', function (req, res) {
             db.Update('delibration', data_delibration, { "id": req.body.delibrationID }, function (err) {
                 if (err) {
                     console.log(err);
+                    res.sendStatus(400)
+                } else {
+                    res.sendStatus(201)
                 }
             })
-            res.sendStatus(201)
         } 
         else {
-            res.sendStatus(400)
+            res.sendStatus(403)
         }
     })
 })
@@ -150,13 +148,15 @@ router.post('/saveEditProposals/:id', function (req, res) {
                 db.Update('proposal', data_proposal, { "id": proposals[data]["proposalID"] }, function (err) {
                     if (err) {
                         console.log(err);
+                        res.sendStatus(400)
+                    } else {
+                        res.sendStatus(201)
                     }
                 })
             }
-            res.sendStatus(201)
         } 
         else {
-            res.sendStatus(400)
+            res.sendStatus(403)
         }
     })
 })
@@ -182,7 +182,7 @@ router.post('/editProposals/:id', function(req, res){
             });
         } 
         else {
-            res.sendStatus(400)
+            res.sendStatus(403)
         }
     })
     
