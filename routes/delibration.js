@@ -1,30 +1,56 @@
 var express = require('express');
 var router = express.Router();
 var db = require('../models/db');
+var cache = require('../helper/cache');
+var redis = cache.redis;
+var delibrationCacheKey = cache.delibrationCacheKey;
 
-router.get('/', function (req, res) {
-    var studentID = req.body["studentID"];
-    db.Query("SELECT name FROM `position` WHERE studentID ='" + studentID + "'", function (name, err) {
-        var filter = "";
-        for(var i=0; i<name.length; i++){
-            if(i>0){
-                filter += ","
-            }
-            filter += "'" + name[i]["name"] + "'";
-        }
-        var sql = "SELECT * FROM delibration where position in (" + filter + ")";
-        db.Query(sql, function (delibration, err) {
-            if (err) {
-                console.log(err);
-                res.sendStatus(400);
-            } else {
-                if (delibration.length == 0) {
-                    res.status(404).send("Cannnot find.");
-                } else {
-                    res.status(200).send(delibration);
-                }
-            }
-        });
+router.get('/:studentID', function (req, res) {
+    var studentID = req.params.studentID;
+    redis.get(delibrationCacheKey(studentID), function(err, reply){
+        if(reply){
+	    var data = JSON.parse(reply);
+	    //console.log("redis read success");
+	    res.status(200).send(data);
+	} else {
+	    db.Query('select * from position where studentID = "' + studentID + '";', function(positionResult, err){
+	        if(err) throw err;
+                if(positionResult.length == 0){
+		    db.Query('select * from delibration where position is null;', function(delibrationResult, err){
+		        if(err){
+			    console.log(err);
+			    res.status(403).send("err");
+			} else {
+			    redis.set(delibrationCacheKey(studentID), JSON.stringify(delibrationResult));
+			    res.status(200).send(delibrationResult);
+			}
+		    })
+		} else {
+		    sql = 'select * from delibration where position in (';
+		    console.log("position result: " + positionResult); 
+		    for(let n in positionResult){
+		        console.log("index:" + n + ", position:" + positionResult[n].name + "\n");
+			sql = sql + '"'  + positionResult[n]["name"] + '"';
+			if(n == positionResult.length-1){
+			    sql = sql + ')';
+			} else {
+			    sql = sql + ',';
+			}
+		    }
+		    sql = sql + " or position is null;";
+		    //console.log(sql);
+	            db.Query(sql, function(delibrationResult){
+			if(err){
+		            console.log(err);
+			    res.status(403).send("err");
+			} else {
+			    redis.set(delibrationCacheKey(studentID), JSON.stringify(delibrationResult));
+		            res.status(200).send(delibrationResult);
+			}
+		    })
+		}
+	    })
+	}
     })
 })
 // /delibration/deleteDelibration/:id
