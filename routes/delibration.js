@@ -1,52 +1,100 @@
 var express = require('express');
 var router = express.Router();
 var db = require('../models/db');
+var cache = require('../helper/cache');
+var redis = cache.redis;
+var delibrationCacheKey = cache.delibrationCacheKey;
 
-router.get('/', function (req, res) {
-    var sql = 'SELECT * FROM delibration'
-    db.Query(sql, function (delibration, err) {
+router.get('/:studentID', function (req, res) {
+    var studentID = req.params.studentID;
+    redis.get(delibrationCacheKey(studentID), function(err, reply){
+        if(reply){
+	    var data = JSON.parse(reply);
+	    //console.log("redis read success");
+	    res.status(200).send(data);
+	} else {
+	    db.Query('select * from position where studentID = "' + studentID + '";', function(positionResult, err){
+	        if(err) throw err;
+                if(positionResult.length == 0){
+		    db.Query('select * from delibration where position is null;', function(delibrationResult, err){
+		        if(err){
+			    console.log(err);
+			    res.status(403).send("err");
+			} else {
+			    redis.set(delibrationCacheKey(studentID), JSON.stringify(delibrationResult));
+			    res.status(200).send(delibrationResult);
+			}
+		    })
+		} else {
+		    sql = 'select * from delibration where position in (';
+		    console.log("position result: " + positionResult); 
+		    for(let n in positionResult){
+		        console.log("index:" + n + ", position:" + positionResult[n].name + "\n");
+			sql = sql + '"'  + positionResult[n]["name"] + '"';
+			if(n == positionResult.length-1){
+			    sql = sql + ')';
+			} else {
+			    sql = sql + ',';
+			}
+		    }
+		    sql = sql + " or position is null;";
+		    //console.log(sql);
+	            db.Query(sql, function(delibrationResult){
+			if(err){
+		            console.log(err);
+			    res.status(403).send("err");
+			} else {
+			    redis.set(delibrationCacheKey(studentID), JSON.stringify(delibrationResult));
+		            res.status(200).send(delibrationResult);
+			}
+		    })
+		}
+	    })
+	}
+    })
+})
+
+router.get('/leader', function (req, res) {
+    var sql = "SELECT * FROM delibration order by startTime DESC";
+    db.Query(sql, function (delibrations, err) {
         if (err) {
             console.log(err);
             res.sendStatus(400);
         } else {
-            if (delibration.length == 0) {
-                res.status(404).send("Cannnot find.");
-            } else {
-                res.status(200).send(delibration);
-            }
+            res.status(200).send(delibrations);
         }
     });
 })
-// /delibration/deleteDelibration/:id
+
+
 router.post('/deleteDelibration/:delibrationID', function (req, res) {
 
-    delibration_id = req.params.delibrationID
+    delibration_id = req.params.delibrationID;
 
     db.DeleteById('delibration', delibration_id, function (err, result) {
         if (err) {
             console.log(err);
-            res.sendStatus(403);
+            res.sendStatus(400);
 
         } else {
-            res.status(200).send("success");
+            res.sendStatus(200);
         }
     })
 })
 
 
-router.get('/entry', function (req, res) {
-    var id = req.body.delibrationID;
-    var now = myDate.toLocaleString();
-    db.Query('SELECT semester,period,dName,startTime,position FROM delibration WHERE delibrationID =' + id, function (result) {
-        if (now >= result.startTime) {
-            res.status(200).send("success");
-            res.send(result);
-        } else {
-            res.status(403).send("fail");
-        }
-    })
-})
-
+// router.get('/entry', function (req, res) {
+//     var id = req.body.delibrationID;
+//     var now = myDate.toLocaleString();
+//     db.Query('SELECT semester,period,dName,startTime,position FROM delibration WHERE delibrationID =' + id, function (result) {
+//         if (now >= result.startTime) {
+//             res.status(200).send("success");
+//             res.send(result);
+//         } else {
+//             res.status(403).send("fail");
+//         }
+//     })
+// })
 
 
 router.post('/createDelibration', function (req, res) {
@@ -67,31 +115,18 @@ router.post('/createDelibration', function (req, res) {
         db.Insert('delibration', data, function (err, result) {
             if (err) {
                 console.log(err);
-                res.sendStatus(403)
+                res.sendStatus(400);
             } else {
-                res.sendStatus(201)
+                res.sendStatus(201);
             }
         })
     } else {
-        res.sendStatus(400)
+        res.sendStatus(400);
     }
 })
 
-router.get('/:position', function (req, res) {
-    var position = req.params["position"].toString();
-    var sql = "SELECT * FROM delibration WHERE position = " + position
-    db.Query(sql, function (delibration) {
-        if (delibration.length == 0) {
-            res.sendStatus(204);
-        } else {
-            res.status(200).send(delibration);
-        }
-    });
-})
-
 router.post('/saveEditDelibration/:id', function (req, res) {
-
-    user_id = req.params.id
+    var user_id = req.params.id
     
     var data_delibration = {
         "dName": req.body.name,
@@ -103,71 +138,81 @@ router.post('/saveEditDelibration/:id', function (req, res) {
         "period": req.body.period,
     }
 
-    var proposals = req.body.proposal
-
     db.FindbyColumn('user', ['position'], { 'id': user_id }, function (result) {
 
         if (result[0]["position"] == "leader") {
             db.Update('delibration', data_delibration, { "id": req.body.delibrationID }, function (err) {
                 if (err) {
                     console.log(err);
+                    res.sendStatus(400);
+                } else {
+                    res.sendStatus(201);
                 }
             })
-            
-            for (var data in proposals) {
-                
+        } 
+        else {
+            res.sendStatus(403);
+        }
+    })
+})
+
+
+router.post('/saveEditProposals/:id', function (req, res) {
+    var user_id = req.params.id;
+    var proposals = req.body.proposal;
+
+    db.FindbyColumn('user', ['position'], { 'id': user_id }, function (result) {
+        if (result[0]["position"] == "leader") {
+            for (var data in proposals) { 
                 var data_proposal = {
                     "dept": proposals[data]["dept"],
                     "reason": proposals[data]["reason"],
                     "description": proposals[data]["description"],
                     "discussion": proposals[data]["discussion"]
                 }
-
+        
                 db.Update('proposal', data_proposal, { "id": proposals[data]["proposalID"] }, function (err) {
                     if (err) {
                         console.log(err);
+                        res.sendStatus(400);
+                    } else {
+                        res.sendStatus(201);
                     }
                 })
             }
-            res.sendStatus(201)
         } 
         else {
-            res.sendStatus(400)
+            res.sendStatus(403);
         }
     })
 })
 
-router.get('/delibration/editDelibration/:id', function(req, res){
-    var id = req.body.delibrationID;
-    var cols = ["dName", "createTime", "startTime", "endTime", "position", "semester", "period"]
-    var conditions = {
-        "id": id
-    }
-    var data = {}
+router.post('/editProposals/:id', function(req, res){
+    var user_id = req.params.id;
+    var delibrationID = req.body.delibrationID;
 
-    db.FindbyColumn("delibration", cols, conditions, function (err, result) {
-        if (err) {
-            console.log(err);
-            res.status(403).send("fail");
-        } else {
-            Object.assign(data, result);
-
-            var cols = ["dept", "reason", "description", "discussion"]
-            db.FindbyColumn("proposal", {"delibrationID": id}, cols, function(err, result){
-                if (err){
+    db.FindbyColumn('user', ['position'], { 'id': user_id }, function (result) {
+        if (result[0]["position"] == "leader") {
+            var sql = "SELECT * FROM proposal where delibrationID = '" + delibrationID + "'";
+            db.Query(sql, function (proposals, err) {
+                if (err) {
                     console.log(err);
-                    res.status(403).send("fail");
+                    res.sendStatus(400);
                 } else {
-                    data.proposal = result;
-                    res.send(data);
-                    console.log("success");
-                    res.status(200).send("sucess");
+                    if (proposals.length == 0) {
+                        res.status(404).send("Cannnot find.");
+                    } else {
+                        res.status(200).send(proposals);
                     }
-            })
+                }
+            });
+        } 
+        else {
+            res.sendStatus(403);
         }
     })
+    
 })
-
 
 
 module.exports = router;
