@@ -47,11 +47,13 @@ router.post('/signup', function (req, res) {
 router.post('/login', function (req, res) {
     var ID = req.body.studentID;
     var pw = req.body.password;
-
     db.Query("SELECT password FROM `user` WHERE studentID='" + ID + "'", function (password, err) {
+	console.log(password.length);
         if (err) {
             console.log(err);
-        } else {
+        } else if(password.length == 0){
+	    res.status(200).send("unexist");
+	} else {
             if (pw == password[0]["password"]) {
                 db.Query("SELECT name FROM `position` WHERE studentID ='" + ID + "'", function (name, err) {
                     var data = {
@@ -63,6 +65,7 @@ router.post('/login', function (req, res) {
                             data.isLeader = true;
                         }
                     }
+		    req.session.studentID = ID;
                     res.status(200).send(data);
                 })
             } else {
