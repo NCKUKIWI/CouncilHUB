@@ -41,8 +41,8 @@ io.on('connection', (socket) => {
 
     socket.on('entryVote', (msg) => { //點進議案觸發
         var proposalID = msg.proposalID;
-        var insertSql = "SELECT isVoting FROM `proposal` WHERE proposalID = " + proposalID;
-        db.Query(insertSql, function (voteInfo, err) {
+        var isVotingSql = "SELECT isVoting FROM `proposal` WHERE proposalID = " + proposalID;
+        db.Query(isVoting, function (voteInfo, err) {
             var isVoting = voteInfo[0]["isVoting"];
             if (isVoting === 0) {
                 io.emit('closeVote', "投票結束囉"); // 告訴大家

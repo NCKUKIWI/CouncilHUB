@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var db = require('../models/db');
 
+//取得某特定議事的所有議案的提案單位名稱
 router.get('/:delibrationID', function (req, res) {
     var id = req.params.delibrationID;
     db.Query('SELECT name FROM proposal WHERE delibrationID =' + id, function (result) {
@@ -12,19 +13,6 @@ router.get('/:delibrationID', function (req, res) {
         }
     })
 })
-
-// router.get('/createVote', function (req, res) {
-//     var cName = req.body.cName;
-//     var dID = req.body.delibrationID;
-//     var pID = req.body.proposalID;
-//     db.Query('INSERT case (cName,delibrationID,proposalID) VALUES (' + cName + ',' + dID + ',' + pID + ')', function (result) {
-//         res.send({
-//             caseID: result.insertID,
-//             cName: cName
-//         });
-//     })
-// })
-
 
 router.post('/voteResults', function (req, res) {
     var proposalID = req.body["proposalID"];
@@ -82,6 +70,7 @@ router.post('/voteResults', function (req, res) {
     })
 })
 
+//取得某特定議事的某特定議案的資料
 router.get("/:delibrationID/:proposalID", function (req, res) {
     var condition = {
         "delibrationID": req.body["delibrationID"],
@@ -166,59 +155,30 @@ router.post('/voteResolution', function (req, res) {
         }
     });
 });
-// router.post('/createProposal', function (req, res) {
 
-//     if (req.body["delibrationID"] && req.body["dept"]) {
-//         var data = {
-//             "delibrationID": req.body["delibrationID"],
-//             "dept": req.body["dept"],
-//             "reason": req.body["reason"],
-//             "description": req.body["description"],
-//             "discussion": req.body["discussion"],
-//             "name": req.body["name"]
-//         }
+//新增議案
+router.post('/createProposal/:delibrationid', function (req, res) {
+    var delibrationID = req.params.delibrationid;
+    var dept = req.body.dept;
+    var reason = req.body.reason;
+    var description = req.body.description;
+    var data = {
+        "delibrationID": delibrationID,
+        "dept": dept,
+        "reason": reason,
+        "description": description
+    }
 
-//         db.Insert('proposal', data, function (err, result) {
-//             if (err) {
-//                 console.log(err);
-//                 // res.send({
-//                 //     create: "fail"
-//                 // });
-//                 res.sendStatus(403)
+    db.Insert("proposal", data, function (err, result) {
+        if (err) {
+            console.log(err);
+            res.status(403).send();
+        }
+        else {
+            res.status(201).send();
+        }
+    })
+})
 
-//             } else {
-//                 res.sendStatus(201)
-//             }
-//         })
-//     } else {
-//         res.sendStatus(400)
-//     }
-// })
-
-// router.post('/save/:delibrationid', function (req, res) {
-//     var delibrationID = req.params.delibrationid;
-//     var dept = req.body.dept;
-//     var reason = req.body.reason;
-//     var description = req.body.description;
-//     var data = {
-//         "delibrationID": delibrationID,
-//         "dept": dept,
-//         "reason": reason,
-//         "description": description
-//     }
-
-//     db.Insert("proposal", data, function (err, result) {
-//         if (err) {
-//             console.log(err);
-//             res.status(403).send();
-//         }
-//         else {
-//             res.status(201).send();
-//         }
-//     })
-
-//     //res.status(201).send();
-//     //status 要 send res才會出去
-// })
 
 module.exports = router;

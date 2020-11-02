@@ -5,6 +5,7 @@ var cache = require('../helper/cache');
 var redis = cache.redis;
 var delibrationCacheKey = cache.delibrationCacheKey;
 
+//取得權限內議事內容
 router.get('/', function (req, res) {
     var studentID = req.session.studentID;
     if(studentID){
@@ -58,6 +59,7 @@ router.get('/', function (req, res) {
     }
 })
 
+//議長取得所有議事內容
 router.get('/leader', function (req, res) {
     var sql = "SELECT * FROM delibration order by startTime DESC";
     db.Query(sql, function (delibrations, err) {
@@ -70,7 +72,7 @@ router.get('/leader', function (req, res) {
     });
 })
 
-
+//刪除議事
 router.post('/deleteDelibration/:delibrationID', function (req, res) {
 
     delibration_id = req.params.delibrationID;
@@ -86,21 +88,7 @@ router.post('/deleteDelibration/:delibrationID', function (req, res) {
     })
 })
 
-
-// router.get('/entry', function (req, res) {
-//     var id = req.body.delibrationID;
-//     var now = myDate.toLocaleString();
-//     db.Query('SELECT semester,period,dName,startTime,position FROM delibration WHERE delibrationID =' + id, function (result) {
-//         if (now >= result.startTime) {
-//             res.status(200).send("success");
-//             res.send(result);
-//         } else {
-//             res.status(403).send("fail");
-//         }
-//     })
-// })
-
-
+//新增議事
 router.post('/createDelibration', function (req, res) {
 
     // var startTime = moment(data.myTime.format(req.body["startTime"])).toISOString();
@@ -129,6 +117,7 @@ router.post('/createDelibration', function (req, res) {
     }
 })
 
+//儲存修改的議事
 router.post('/saveEditDelibration/:id', function (req, res) {
     var user_id = req.params.id
     
@@ -160,7 +149,7 @@ router.post('/saveEditDelibration/:id', function (req, res) {
     })
 })
 
-
+//儲存修改的議案
 router.post('/saveEditProposals/:id', function (req, res) {
     var user_id = req.params.id;
     var proposals = req.body.proposal;
@@ -191,6 +180,7 @@ router.post('/saveEditProposals/:id', function (req, res) {
     })
 })
 
+//取得當前意識下的所有議案供修改
 router.post('/editProposals/:id', function(req, res){
     var user_id = req.params.id;
     var delibrationID = req.body.delibrationID;
