@@ -75,40 +75,40 @@ router.post('/login', function (req, res) {
     })
 })
 
-router.post('/changeRole', function(req, res){
-    var condition = {
-        "studentID": req.body["studentID"]
-    };
-    var data = {
-        "role": 4
-    }
+// router.post('/changeRole', function(req, res){
+//     var condition = {
+//         "studentID": req.body["studentID"]
+//     };
+//     var data = {
+//         "role": 4
+//     }
     
-    db.Update('user', data, condition, function(err, result){
-        if (err){
-            console.log(err);
-            res.sendStatus(400);
-        }else{
-            res.sendStatus(200);
-        }
-    })
-})
+//     db.Update('user', data, condition, function(err, result){
+//         if (err){
+//             console.log(err);
+//             res.sendStatus(400);
+//         }else{
+//             res.sendStatus(200);
+//         }
+//     })
+// })
 
-router.post('/deleteRole', function(req, res){
-    var condition = {
-        "studentID": req.body["studentID"]
-    };
-    var data = {
-        "role": 0
-    }
+// router.post('/deleteRole', function(req, res){
+//     var condition = {
+//         "studentID": req.body["studentID"]
+//     };
+//     var data = {
+//         "role": 0
+//     }
     
-    db.Update('user', data, condition, function(err, result){
-        if (err){
-            console.log(err);
-            res.sendStatus(400);
-        }else{
-            res.sendStatus(200);
-        }
-    })
-})
+//     db.Update('user', data, condition, function(err, result){
+//         if (err){
+//             console.log(err);
+//             res.sendStatus(400);
+//         }else{
+//             res.sendStatus(200);
+//         }
+//     })
+// })
 
 module.exports = router;
