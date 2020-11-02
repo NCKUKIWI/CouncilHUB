@@ -1,13 +1,18 @@
 var express = require('express');
 var app = express();
-var http = require('http').createServer(app);
 var bodyParser = require("body-parser");
-var io = require('socket.io')(http);
+var socket = require('socket.io');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: false
 }));
+
+var http = app.listen(3000, function () {
+    console.log('Example app listening on port 3000!');
+})
+
+var io = socket(http);
 
 app.get('/', function (req, res) {
     res.send('Hello World!');
@@ -67,7 +72,3 @@ io.on('connection', (socket) => {
         // 如果同意>反對 議長自己去改資料XD
     });
 });
-
-app.listen(3000, function () {
-    console.log('Example app listening on port 3000!');
-})
