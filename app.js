@@ -1,31 +1,21 @@
 var express = require('express');
 var app = express();
+var http = require('http').createServer(app);
 var bodyParser = require("body-parser");
-var Server = require('socket.io');
-
+var io = require('socket.io')(http);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: false
 }));
 
-
 app.get('/', function (req, res) {
     res.send('Hello World!');
 })
 
-
 app.use("/user", require("./routes/user"));
 app.use("/proposal", require("./routes/proposal"));
 app.use("/delibration", require("./routes/delibration"));
-
-
-const server = app.listen(3000, function () {
-    console.log('Example app listening on port 3000!');
-})
-
-
-const io = Server(server);
 
 io.on('connection', (socket) => {
 
@@ -45,35 +35,39 @@ io.on('connection', (socket) => {
     });
 
 
-    socket.on('start vote', (msg) => { //議長觸發
+    socket.on('start resolution', (msg) => { //議長觸發
         var proposalID = msg.proposalID;
         var updateSql = "UPDATE `proposal` SET isVoting = 1 WHERE proposalID = " + proposalID;
         db.Query(updateSql, function (updateResult, err) {
-            io.broadcast.emit('start vote', "開始決議案投票"); // 告訴大家
+            io.broadcast.emit('start resolution vote', "開始決議案投票"); // 告訴大家
         })
     });
-    socket.on('close vote', (msg) => { //議長觸發
+    socket.on('close resolution', (msg) => { //議長觸發
         var proposalID = msg.proposalID;
         var updateSql = "UPDATE `proposal` SET isVoting = 0 WHERE proposalID = " + proposalID;
         db.Query(updateSql, function (updateResult, err) {
-            io.broadcast.emit('close vote', "投票結束囉"); // 告訴大家
+            io.broadcast.emit('close resolution vote', "決議案投票結束"); // 告訴大家
         })
     });
 
 
-    socket.on('要投修正動議囉', (msg) => {
+    socket.on('start amendment', (msg) => {
         var proposalID = msg.proposalID;
         var updateSql = "UPDATE `proposal` SET isVoting = 2 WHERE proposalID = " + proposalID;
         db.Query(updateSql, function (updateResult, err) {
-            io.broadcast.emit('開始修正動議投票');
+            io.broadcast.emit('start amendment vote', "開始修正案投票");
         })
     });
-    socket.on('要關修正動議囉', (msg) => {
+    socket.on('close amendment', (msg) => {
         var proposalID = msg.proposalID;
         var updateSql = "UPDATE `proposal` SET isVoting = 0 WHERE proposalID = " + proposalID;
         db.Query(updateSql, function (updateResult, err) {
-            io.broadcast.emit('close vote', "投票結束囉"); // 同意不同意關掉
+            io.broadcast.emit('close amendment vote', "修正案投票結束"); // 同意不同意關掉
         })
         // 如果同意>反對 議長自己去改資料XD
     });
 });
+
+app.listen(3000, function () {
+    console.log('Example app listening on port 3000!');
+})
