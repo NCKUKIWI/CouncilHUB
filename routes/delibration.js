@@ -149,37 +149,6 @@ router.post('/saveEditDelibration/:id', function (req, res) {
     })
 })
 
-//儲存修改的議案
-router.post('/saveEditProposals/:id', function (req, res) {
-    var user_id = req.params.id;
-    var proposals = req.body.proposal;
-
-    db.FindbyColumn('user', ['position'], { 'id': user_id }, function (result) {
-        if (result[0]["position"] == "leader") {
-            for (var data in proposals) { 
-                var data_proposal = {
-                    "dept": proposals[data]["dept"],
-                    "reason": proposals[data]["reason"],
-                    "description": proposals[data]["description"],
-                    "discussion": proposals[data]["discussion"]
-                }
-        
-                db.Update('proposal', data_proposal, { "id": proposals[data]["proposalID"] }, function (err) {
-                    if (err) {
-                        console.log(err);
-                        res.sendStatus(400);
-                    } else {
-                        res.sendStatus(201);
-                    }
-                })
-            }
-        } 
-        else {
-            res.sendStatus(403);
-        }
-    })
-})
-
 //取得當前意識下的所有議案供修改
 router.post('/editProposals/:id', function(req, res){
     var user_id = req.params.id;
