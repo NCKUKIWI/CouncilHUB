@@ -1,10 +1,10 @@
-var express = require('express');
-var router = express.Router();
-var db = require('../models/db');
+const express = require('express');
+const router = express.Router();
+const db = require('../models/db');
 
 //取得某特定議事的所有議案的提案單位名稱
 router.get('/:delibrationID', function (req, res) {
-    var id = req.params.delibrationID;
+    const id = req.params.delibrationID;
     db.Query('SELECT name FROM proposal WHERE delibrationID =' + id, function (result) {
         if (result.length == 0) {
             res.send("None");
@@ -15,15 +15,15 @@ router.get('/:delibrationID', function (req, res) {
 })
 
 router.post('/voteResults', function (req, res) {
-    var proposalID = req.body["proposalID"];
-    var isAmendment = req.body["amendment"];
-    var selectResultSql = "SELECT result FROM `vote` WHERE WHERE proposalID = " + proposalID + " and amendment = " + isAmendment;
+    const proposalID = req.body["proposalID"];
+    const isAmendment = req.body["amendment"];
+    let selectResultSql = "SELECT result FROM `vote` WHERE WHERE proposalID = " + proposalID + " and amendment = " + isAmendment;
     db.Query(selectResultSql, function (votes, err) {
         if (err) {
             console.log(err);
             res.sendStatus(400);
         } else {
-            var agree = 0,
+            let agree = 0,
                 disagree = 0,
                 spoil = 0,
                 total = 0;
@@ -40,11 +40,11 @@ router.post('/voteResults', function (req, res) {
                     spoil = spoil + 1;
                 }
             }
-            var agree_rate = Math.round(agree / total * 100) + "%";
-            var disagree_rate = Math.round(disagree / total * 100) + "%";
-            var spoil_rate = Math.round(spoil / total * 100) + "%";
+            let agree_rate = Math.round(agree / total * 100) + "%";
+            let disagree_rate = Math.round(disagree / total * 100) + "%";
+            let spoil_rate = Math.round(spoil / total * 100) + "%";
             db.Query('SELECT cName FROM `case` WHERE caseID=' + CID, function (name) {
-                var data = {
+                let data = {
                     "agree": {
                         "caseName": name[0]["result"],
                         "result": "同意",
@@ -72,12 +72,12 @@ router.post('/voteResults', function (req, res) {
 
 //取得某特定議事的某特定議案的資料
 router.get("/:delibrationID/:proposalID", function (req, res) {
-    var condition = {
+    const condition = {
         "delibrationID": req.body["delibrationID"],
         "proposalID": req.body["proposalID"]
     };
 
-    var cols = ["dept", "reason", "description", "discussion"];
+    const cols = ["id", "dept", "reason", "description", "discussion"];
 
     db.FindbyColumn("proposal", cols, condition, function (err, result) {
         if (err) {
@@ -90,9 +90,9 @@ router.get("/:delibrationID/:proposalID", function (req, res) {
 })
 
 router.post('/resultsList', function (req, res) {
-    var proposalID = req.body["proposalID"];
-    var isAmendment = req.body["amendment"];
-    var selectVoteSql = "SELECT studentID, result FROM `vote` WHERE proposalID = " + proposalID + " and amendment = " + isAmendment;
+    const proposalID = req.body["proposalID"];
+    const isAmendment = req.body["amendment"];
+    let selectVoteSql = "SELECT studentID, result FROM `vote` WHERE proposalID = " + proposalID + " and amendment = " + isAmendment;
     db.Query(selectVoteSql, function (votesInfo, err) {
         if (err) {
             console.log(err);
@@ -101,7 +101,7 @@ router.post('/resultsList', function (req, res) {
             data = []
             for (let n in votesInfo) {
                 // console.log(votesInfo[n])
-                var column = ['department', 'uName'];
+                const column = ['department', 'uName'];
                 db.FindbyColumn('user', column, { "studentID": votesInfo[n]["studentID"] }, function (userinfo, err) {
                     if (err) {
                         console.log(err);
@@ -116,7 +116,7 @@ router.post('/resultsList', function (req, res) {
                         // console.log("PPP: ", studentVoteInfo)
                         data.push(studentVoteInfo);
 
-                        if (n == votesInfo.length - 1){
+                        if (n == votesInfo.length - 1) {
                             res.status(200).send(data);
                         }
                     }
@@ -127,10 +127,10 @@ router.post('/resultsList', function (req, res) {
 })
 
 router.post('/voteAmendment', function (req, res) {
-    var proposalID = req.body.proposalID;
-    var studentID = req.body.studentID;
-    var result = req.body.result;
-    var voteResultSql = "INSERT INTO vote (proposalID, studentID, result, amendment) VALUES ( " + proposalID + ", '" + studentID + "', " + result + ", 1)";
+    const proposalID = req.body.proposalID;
+    const studentID = req.body.studentID;
+    const result = req.body.result;
+    let voteResultSql = "INSERT INTO vote (proposalID, studentID, result, amendment) VALUES ( " + proposalID + ", '" + studentID + "', " + result + ", 1)";
     db.Query(voteResultSql, function (voteResult, err) {
         if (err) {
             console.log(err);
@@ -142,10 +142,10 @@ router.post('/voteAmendment', function (req, res) {
 });
 
 router.post('/voteResolution', function (req, res) {
-    var proposalID = req.body.proposalID;
-    var studentID = req.body.studentID;
-    var result = req.body.result;
-    var voteResultSql = "INSERT INTO vote (proposalID, studentID, result, amendment) VALUES ( " + proposalID + ", '" + studentID + "', " + result + ", 0)";
+    const proposalID = req.body.proposalID;
+    const studentID = req.body.studentID;
+    const result = req.body.result;
+    let voteResultSql = "INSERT INTO vote (proposalID, studentID, result, amendment) VALUES ( " + proposalID + ", '" + studentID + "', " + result + ", 0)";
     db.Query(voteResultSql, function (voteResult, err) {
         if (err) {
             console.log(err);
@@ -157,17 +157,13 @@ router.post('/voteResolution', function (req, res) {
 });
 
 //新增議案
-router.post('/createProposal/:delibrationid', function (req, res) {
-    var delibrationID = req.params.delibrationid;
-    var dept = req.body.dept;
-    var reason = req.body.reason;
-    var description = req.body.description;
-    var data = {
-        "delibrationID": delibrationID,
-        "dept": dept,
-        "reason": reason,
-        "description": description
-    }
+router.post('/createProposal/:delibrationID', function (req, res) {
+    const data = {
+        "delibrationID": req.params.delibrationID,
+        "dept": req.body.dept,
+        "reason": req.body.reason,
+        "description": req.body.description
+    };
 
     db.Insert("proposal", data, function (err, result) {
         if (err) {
@@ -181,25 +177,34 @@ router.post('/createProposal/:delibrationid', function (req, res) {
 })
 
 //刪除議案
-router.post('/deleteProposal/:delibrationid', function (req, res) {
-    
+router.post('/deleteProposal/:proposalID', function (req, res) {
+    const proposalID = req.params.proposalID;
+
+    db.DeleteById('proposal', proposalID, function (err, result) {
+        if (err) {
+            console.log(err);
+            res.sendStatus(400);
+        } else {
+            res.sendStatus(200);
+        }
+    })
 })
 
 //儲存修改的議案
 router.post('/saveEditProposals/:id', function (req, res) {
-    var user_id = req.params.id;
-    var proposals = req.body.proposal;
+    const user_id = req.params.id;
+    const proposals = req.body.proposal;
 
     db.FindbyColumn('user', ['position'], { 'id': user_id }, function (result) {
         if (result[0]["position"] == "leader") {
-            for (var data in proposals) { 
-                var data_proposal = {
+            for (let data in proposals) {
+                let data_proposal = {
                     "dept": proposals[data]["dept"],
                     "reason": proposals[data]["reason"],
                     "description": proposals[data]["description"],
                     "discussion": proposals[data]["discussion"]
                 }
-        
+
                 db.Update('proposal', data_proposal, { "id": proposals[data]["proposalID"] }, function (err) {
                     if (err) {
                         console.log(err);
@@ -209,7 +214,7 @@ router.post('/saveEditProposals/:id', function (req, res) {
                     }
                 })
             }
-        } 
+        }
         else {
             res.sendStatus(403);
         }
