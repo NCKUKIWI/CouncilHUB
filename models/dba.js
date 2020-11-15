@@ -5,422 +5,419 @@ DELETE 3
 UPDATE 4
 */
 
-var chalk = require('chalk');
-var connection = require('../models/mysql');
-connection = connection.connection;
+const chalk = require('chalk')
+let connection = require('../models/mysql')
+connection = connection.connection
 
-var start;
-var end;
-var db = function () {
-  this.sql = "";
-  this.sqlType = 0;
-  this.limitAmt = "";
+let start
+let end
+const db = function () {
+  this.sql = ''
+  this.sqlType = 0
+  this.limitAmt = ''
   /* SLECTE */
-  this.tableName = "";
-  this.fieldList = [];
-  this.condition = [];
-  this.orderby = [];
+  this.tableName = ''
+  this.fieldList = []
+  this.condition = []
+  this.orderby = []
   /* INSERT */
-  this.datakey = [];
-  this.datavalue = [];
+  this.datakey = []
+  this.datavalue = []
   /* Join */
-  this.joinTable = "";
+  this.joinTable = ''
 }
 
 db.prototype.init = function () {
-  this.sql = "";
-  this.sqlType = 0;
-  this.limitAmt = "";
+  this.sql = ''
+  this.sqlType = 0
+  this.limitAmt = ''
   /* SLECTE */
-  this.tableName = "";
-  this.fieldList = [];
-  this.condition = [];
-  this.orderby = [];
+  this.tableName = ''
+  this.fieldList = []
+  this.condition = []
+  this.orderby = []
   /* INSERT */
-  this.datakey = [];
-  this.datavalue = [];
+  this.datakey = []
+  this.datavalue = []
   /* Join */
-  this.joinTable = "";
-};
+  this.joinTable = ''
+}
 
 /* SELECT */
 db.prototype.select = function () {
-  start = new Date().getTime();
-  this.sql += "SELECT ";
-  this.sqlType = 1;
-  return this;
-};
+  start = new Date().getTime()
+  this.sql += 'SELECT '
+  this.sqlType = 1
+  return this
+}
 
 db.prototype.from = function (table) {
-  if (this.sqlType != 1 && this.sqlType != 3) {
-    throw chalk.red("Error: from() Must follow with select() or delete()");
+  if (this.sqlType !== 1 && this.sqlType !== 3) {
+    throw chalk.red('Error: from() Must follow with select() or delete()')
   } else {
-    this.tableName = table;
-    return this;
+    this.tableName = table
+    return this
   }
-};
+}
 
 db.prototype.field = function (field) {
-  if (this.sqlType != 1) {
-    throw chalk.red("Error: field() Must follow with select()");
+  if (this.sqlType !== 1) {
+    throw chalk.red('Error: field() Must follow with select()')
   } else {
-    if (typeof field == "object") {
-      for (var i in field) {
-        this.fieldList.push(field[i]);
+    if (typeof field === 'object') {
+      for (const i in field) {
+        this.fieldList.push(field[i])
       }
     } else {
-      this.fieldList.push(field);
+      this.fieldList.push(field)
     }
-    return this;
+    return this
   }
-};
+}
 
 db.prototype.where = function (condition, value) {
-  if (condition == '') {
-    return this;
+  if (condition === '') {
+    return this
   } else {
-    if (typeof value === "undefined") {
-      this.condition.push(condition);
+    if (typeof value === 'undefined') {
+      this.condition.push(condition)
     } else {
-      if (typeof value == "string") {
-        this.condition.push(condition + "'" + value + "'");
-      } else if (typeof value == "object") {
-        var _in = " (";
-        for (var i in value) {
-          if (typeof value[i] == "string") {
-            _in += "'" + value[i] + "'";
+      if (typeof value === 'string') {
+        this.condition.push(condition + "'" + value + "'")
+      } else if (typeof value === 'object') {
+        let _in = ' ('
+        for (const i in value) {
+          if (typeof value[i] === 'string') {
+            _in += "'" + value[i] + "'"
           } else {
-            _in += value[i];
+            _in += value[i]
           }
-          if (i != value.length - 1) {
-            _in += ",";
+          if (i !== value.length - 1) {
+            _in += ','
           }
         }
-        _in += ")";
-        this.condition.push(condition + _in);
+        _in += ')'
+        this.condition.push(condition + _in)
       } else {
-        this.condition.push(condition + value);
+        this.condition.push(condition + value)
       }
     }
-    return this;
+    return this
   }
-};
+}
 
 db.prototype.whereCheck = function (condition, value) {
   if (value !== null) {
-    this.condition.push(condition);
+    this.condition.push(condition)
   }
-  return this;
-};
+  return this
+}
 
 db.prototype.SelectQueryBuilder = function () {
-  for (var i in this.fieldList) {
-    if (i == this.fieldList.length - 1) {
-      this.sql += this.fieldList[i] + " ";
+  for (const i in this.fieldList) {
+    if (i === this.fieldList.length - 1) {
+      this.sql += this.fieldList[i] + ' '
     } else {
-      this.sql += (this.fieldList[i] + ",");
+      this.sql += (this.fieldList[i] + ',')
     }
   }
 
-  this.sql += "FROM " + this.tableName;
+  this.sql += 'FROM ' + this.tableName
   if (this.condition.length > 0) {
-    this.ConditionBuilder();
+    this.ConditionBuilder()
   }
 
-  if (this.orderby.length != 0) {
-    this.sql += " ORDER BY ";
-    for (var i in this.orderby) {
-      if (i == this.orderby.length - 1) {
-        this.sql += this.orderby[i] + " ";
+  if (this.orderby.length !== 0) {
+    this.sql += ' ORDER BY '
+    for (const i in this.orderby) {
+      if (i === this.orderby.length - 1) {
+        this.sql += this.orderby[i] + ' '
       } else {
-        this.sql += this.orderby[i] + " , ";
+        this.sql += this.orderby[i] + ' , '
       }
     }
   }
-  if (this.limitAmt != "") {
-    this.sql += this.limitAmt;
+  if (this.limitAmt !== '') {
+    this.sql += this.limitAmt
   }
 }
 
 /* INSERT */
 db.prototype.insert = function () {
-  start = new Date().getTime();
-  this.sql += "INSERT ";
-  this.sqlType = 2;
-  return this;
-};
+  start = new Date().getTime()
+  this.sql += 'INSERT '
+  this.sqlType = 2
+  return this
+}
 
 db.prototype.into = function (table) {
-  if (this.sqlType != 2) {
-    throw chalk.red("Error: into() Must follow with insert()");
+  if (this.sqlType !== 2) {
+    throw chalk.red('Error: into() Must follow with insert()')
   } else {
-    this.sql += "INTO " + table;
-    return this;
+    this.sql += 'INTO ' + table
+    return this
   }
-};
+}
 
 db.prototype.set = function (data) {
-  if (this.sqlType != 2 && this.sqlType != 4) {
-    throw chalk.red("Error: set() Must follow with insert() or update()");
+  if (this.sqlType !== 2 && this.sqlType !== 4) {
+    throw chalk.red('Error: set() Must follow with insert() or update()')
   } else {
-    for (var i in data) {
-      this.datakey.push(i);
-      if (typeof data[i] === "string") {
-        this.datavalue.push("'" + data[i] + "'");
+    for (const i in data) {
+      this.datakey.push(i)
+      if (typeof data[i] === 'string') {
+        this.datavalue.push("'" + data[i] + "'")
       } else {
-        this.datavalue.push(data[i]);
+        this.datavalue.push(data[i])
       }
     }
-    return this;
+    return this
   }
-};
+}
 
 db.prototype.InsertQueryBuilder = function () {
-  this.sql += " (";
-  for (var i in this.datakey) {
-    if (i == this.datakey.length - 1) {
-      this.sql += this.datakey[i];
+  this.sql += ' ('
+  for (const i in this.datakey) {
+    if (i === this.datakey.length - 1) {
+      this.sql += this.datakey[i]
     } else {
-      this.sql += this.datakey[i] + ",";
+      this.sql += this.datakey[i] + ','
     }
   }
-  this.sql += ") VALUE (";
-  for (var i in this.datavalue) {
-    if (i == this.datavalue.length - 1) {
-      this.sql += this.datavalue[i];
+  this.sql += ') VALUE ('
+  for (const i in this.datavalue) {
+    if (i === this.datavalue.length - 1) {
+      this.sql += this.datavalue[i]
     } else {
-      this.sql += this.datavalue[i] + ",";
+      this.sql += this.datavalue[i] + ','
     }
   }
-  this.sql += ") ";
-};
+  this.sql += ') '
+}
 
 /* DELETE */
 db.prototype.delete = function () {
-  start = new Date().getTime();
-  this.sql += "DELETE ";
-  this.sqlType = 3;
-  return this;
-};
+  start = new Date().getTime()
+  this.sql += 'DELETE '
+  this.sqlType = 3
+  return this
+}
 
 db.prototype.DeleteQueryBuilder = function () {
-
-  this.sql += "FROM " + this.tableName;
+  this.sql += 'FROM ' + this.tableName
   if (this.condition.length > 0) {
-    this.ConditionBuilder();
+    this.ConditionBuilder()
   }
-  if (this.orderby.length != 0) {
-    this.sql += " ORDER BY ";
-    for (var i in this.orderby) {
-      if (i == this.orderby.length - 1) {
-        this.sql += this.orderby[i] + " ";
+  if (this.orderby.length !== 0) {
+    this.sql += ' ORDER BY '
+    for (const i in this.orderby) {
+      if (i === this.orderby.length - 1) {
+        this.sql += this.orderby[i] + ' '
       } else {
-        this.sql += this.orderby[i] + " , ";
+        this.sql += this.orderby[i] + ' , '
       }
     }
   }
-  if (this.limitAmt != "") {
-    this.sql += this.limitAmt;
+  if (this.limitAmt !== '') {
+    this.sql += this.limitAmt
   }
-};
+}
 
 /* UPDATE */
 db.prototype.update = function () {
-  this.sql += "UPDATE ";
-  this.sqlType = 4;
-  return this;
+  this.sql += 'UPDATE '
+  this.sqlType = 4
+  return this
 }
 
 db.prototype.table = function (table) {
-  if (this.sqlType != 4) {
-    throw chalk.red("Error: table() Must follow with update()");
+  if (this.sqlType !== 4) {
+    throw chalk.red('Error: table() Must follow with update()')
   } else {
-    this.tableName = table;
-    return this;
+    this.tableName = table
+    return this
   }
-};
+}
 
 db.prototype.UpdateQueryBuilder = function () {
-  this.sql += this.tableName + " ";
-  this.sql += "SET ";
-  for (var i in this.datakey) {
-    if (i == this.datakey.length - 1) {
-      this.sql += (this.datakey[i] + "=" + this.datavalue[i]);
+  this.sql += this.tableName + ' '
+  this.sql += 'SET '
+  for (const i in this.datakey) {
+    if (i === this.datakey.length - 1) {
+      this.sql += (this.datakey[i] + '=' + this.datavalue[i])
     } else {
-      this.sql += (this.datakey[i] + "=" + this.datavalue[i] + ",");
+      this.sql += (this.datakey[i] + '=' + this.datavalue[i] + ',')
     }
   }
   if (this.condition.length > 0) {
-    this.ConditionBuilder();
+    this.ConditionBuilder()
   }
 }
 /* innerjoin */
 db.prototype.join = function (table) {
-  this.joinTable = table;
-  return this;
-};
+  this.joinTable = table
+  return this
+}
 
 db.prototype.JoinQueryBuilder = function () {
-
-  for (var i in this.fieldList) {
-    if (i == this.fieldList.length - 1) {
-      this.sql += this.fieldList[i] + " ";
+  for (const i in this.fieldList) {
+    if (i === this.fieldList.length - 1) {
+      this.sql += this.fieldList[i] + ' '
     } else {
-      this.sql += (this.fieldList[i] + ",");
+      this.sql += (this.fieldList[i] + ',')
     }
   }
-  this.sql += "FROM " + this.tableName + " INNER JOIN " + this.joinTable;
+  this.sql += 'FROM ' + this.tableName + ' INNER JOIN ' + this.joinTable
 
   if (this.condition.length > 0) {
-    this.ConditionBuilder();
+    this.ConditionBuilder()
   }
-  if (this.orderby.length != 0) {
-    this.sql += " ORDER BY ";
-    for (var i in this.orderby) {
-      if (i == this.orderby.length - 1) {
-        this.sql += this.orderby[i] + " ";
+  if (this.orderby.length !== 0) {
+    this.sql += ' ORDER BY '
+    for (const i in this.orderby) {
+      if (i === this.orderby.length - 1) {
+        this.sql += this.orderby[i] + ' '
       } else {
-        this.sql += this.orderby[i] + " , ";
+        this.sql += this.orderby[i] + ' , '
       }
     }
   }
-  if (this.limitAmt != "") {
-    this.sql += this.limitAmt;
+  if (this.limitAmt !== '') {
+    this.sql += this.limitAmt
   }
-};
+}
 
 db.prototype.order = function (order, type) {
   if (type === undefined) {
-    type = "ASC";
+    type = 'ASC'
   } else {
-    type = "DESC";
+    type = 'DESC'
   }
-  this.orderby.push(order + " " + type);
-  return this;
+  this.orderby.push(order + ' ' + type)
+  return this
 }
 
 db.prototype.limit = function (number) {
-  this.limitAmt += "LIMIT " + number;
-  return this;
-};
+  this.limitAmt += 'LIMIT ' + number
+  return this
+}
 
 db.prototype.ConditionBuilder = function () {
-
-  if (this.joinTable != "") {
-    this.sql += " ON ";
+  if (this.joinTable !== '') {
+    this.sql += ' ON '
   } else {
-    this.sql += " WHERE ";
+    this.sql += ' WHERE '
   }
-  for (var i in this.condition) {
-    if (i == this.condition.length - 1) {
-      this.sql += this.condition[i];
+  for (const i in this.condition) {
+    if (i === this.condition.length - 1) {
+      this.sql += this.condition[i]
     } else {
-      this.sql += this.condition[i] + " AND ";
+      this.sql += this.condition[i] + ' AND '
     }
   }
-};
+}
 
 db.prototype.run = function (callback, silence) {
   switch (this.sqlType) {
     case 1:
-      if (this.joinTable != "") {
-        this.JoinQueryBuilder();
+      if (this.joinTable !== '') {
+        this.JoinQueryBuilder()
       } else {
-        this.SelectQueryBuilder();
+        this.SelectQueryBuilder()
       }
-      break;
+      break
     case 2:
-      this.InsertQueryBuilder();
-      break;
+      this.InsertQueryBuilder()
+      break
     case 3:
-      this.DeleteQueryBuilder();
-      break;
+      this.DeleteQueryBuilder()
+      break
     case 4:
-      this.UpdateQueryBuilder();
-      break;
+      this.UpdateQueryBuilder()
+      break
     default:
-      throw "Error";
+      console.log('Error')
+      break
   }
-  if (!silence) console.log("\n" + this.sql);
-  var sql = this.sql;
-  this.init();
+  if (!silence) console.log('\n' + this.sql)
+  const sql = this.sql
+  this.init()
   connection.query(sql, function (err, results, fields) {
-    end = new Date().getTime();
-    var time = end - start;
-    if (!silence) console.log(chalk.green("Execute time: " + time + " ms"));
-    callback(results, err);
-  });
-};
+    end = new Date().getTime()
+    const time = end - start
+    if (!silence) console.log(chalk.green('Execute time: ' + time + ' ms'))
+    callback(results, err)
+  })
+}
 
 db.prototype.get = function (callback) {
   switch (this.sqlType) {
     case 1:
-      if (this.joinTable != "") {
-        this.JoinQueryBuilder();
+      if (this.joinTable !== '') {
+        this.JoinQueryBuilder()
       } else {
-        this.SelectQueryBuilder();
+        this.SelectQueryBuilder()
       }
-      break;
+      break
     case 2:
-      this.InsertQueryBuilder();
-      break;
+      this.InsertQueryBuilder()
+      break
     case 3:
-      this.DeleteQueryBuilder();
-      break;
+      this.DeleteQueryBuilder()
+      break
     case 4:
-      this.UpdateQueryBuilder();
-      break;
+      this.UpdateQueryBuilder()
+      break
     default:
-      console.log("Error");
-      break;
+      console.log('Error')
+      break
   }
-  console.log("\n" + this.sql);
-  var sql = this.sql;
-  this.init();
+  console.log('\n' + this.sql)
+  const sql = this.sql
+  this.init()
   connection.query(sql, function (err, results, fields) {
-    if (err) throw err;
-    end = new Date().getTime();
-    var time = end - start;
-    console.log(chalk.green("Execute time: " + time + " ms"));
-    return results;
-  });
-};
+    if (err) throw err
+    end = new Date().getTime()
+    const time = end - start
+    console.log(chalk.green('Execute time: ' + time + ' ms'))
+    return results
+  })
+}
 
 db.prototype.test = function () {
   switch (this.sqlType) {
     case 1:
-      if (this.joinTable != "") {
-        this.JoinQueryBuilder();
+      if (this.joinTable !== '') {
+        this.JoinQueryBuilder()
       } else {
-        this.SelectQueryBuilder();
+        this.SelectQueryBuilder()
       }
-      break;
+      break
     case 2:
-      this.InsertQueryBuilder();
-      break;
+      this.InsertQueryBuilder()
+      break
     case 3:
-      this.DeleteQueryBuilder();
-      break;
+      this.DeleteQueryBuilder()
+      break
     case 4:
-      this.UpdateQueryBuilder();
-      break;
+      this.UpdateQueryBuilder()
+      break
     default:
-      console.log("Error");
-      break;
+      console.log('Error')
+      break
   }
-  console.log("\n" + this.sql);
-  var sql = this.sql;
-  end = new Date().getTime();
-  var time = end - start;
-  console.log(chalk.green("Execute time: " + time + " ms"));
-  this.init();
-};
+  console.log('\n' + this.sql)
+  end = new Date().getTime()
+  const time = end - start
+  console.log(chalk.green('Execute time: ' + time + ' ms'))
+  this.init()
+}
 
 db.prototype.sql = function (sql, callback) {
   connection.query(sql, function (err, results, fields) {
-    if (err) throw err;
-    callback(results);
-  });
-};
+    if (err) throw err
+    callback(results)
+  })
+}
 
-module.exports = db;
+module.exports = db
