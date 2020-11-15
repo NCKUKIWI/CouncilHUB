@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const socket = require('socket.io')
-const db = require('../models/db')
+const db = require('./models/db')
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({
