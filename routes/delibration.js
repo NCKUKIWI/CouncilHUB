@@ -64,7 +64,7 @@ router.get('/leader', function (req, res) {
   db.Query(sql, function (delibrations, err) {
     if (err) {
       console.log(err)
-      res.sendStatus(400)
+      res.sendStatus(500)
     } else {
       res.status(200).send(delibrations)
     }
@@ -73,58 +73,71 @@ router.get('/leader', function (req, res) {
 
 // 已測試
 // 刪除議事
-router.post('/deleteDelibration', function (req, res) {
-  const delibrationID = req.body.delibrationID
-
-  db.DeleteById('delibration', delibrationID, function (err, result) {
+router.post('/deleteDelibration/:id', function (req, res) {
+  const studentID = req.params.id
+  db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (result, err) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
     } else {
-      res.status(200).json({
-        message: 'success'
-      })
+      if (result.length !== 0) {
+        const delibrationID = req.body.delibrationID
+        db.DeleteById('delibration', delibrationID, function (err, result) {
+          if (err) {
+            console.log(err)
+            res.sendStatus(500)
+          } else {
+            res.status(200).json({
+              message: 'success'
+            })
+          }
+        })
+      } else {
+        res.sendStatus(403)
+      }
     }
   })
 })
 
 // 已測試
 // 新增議事
-router.post('/createDelibration', function (req, res) {
-  // var startTime = moment(data.myTime.format(req.body["startTime"])).toISOString();
-
-  if (req.body.dName && req.body.startTime && req.body.endTime && req.body.position && req.body.semester && req.body.period) {
-    const data = {
-      dName: req.body.dName,
-      startTime: req.body.startTime,
-      endTime: req.body.endTime,
-      position: req.body.position,
-      semester: req.body.semester,
-      period: req.body.period
-    }
-
-    // myDate = moment(data.myTime.format('YYYY/MM/DD HH:MM:SS')).toISOString();
-
-    db.Insert('delibration', data, function (err, result) {
-      if (err) {
-        console.log(err)
-        res.sendStatus(500)
-      } else {
-        res.status(200).json({
-          message: 'success'
+router.post('/createDelibration/:id', function (req, res) {
+  const studentID = req.params.id
+  db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (result, err) {
+    if (err) {
+      console.log(err)
+      res.sendStatus(500)
+    } else {
+      if (result.length !== 0) {
+        const data = {
+          dName: req.body.dName,
+          startTime: req.body.startTime,
+          endTime: req.body.endTime,
+          position: req.body.position,
+          semester: req.body.semester,
+          period: req.body.period
+        }
+        db.Insert('delibration', data, function (err, result) {
+          if (err) {
+            console.log(err)
+            res.sendStatus(500)
+          } else {
+            res.status(200).json({
+              message: 'success'
+            })
+          }
         })
+      } else {
+        res.sendStatus(403)
       }
-    })
-  } else {
-    res.sendStatus(400)
-  }
+    }
+  })
 })
 
 // 已測試
 // 儲存修改的議事
 router.post('/saveEditDelibration/:id', function (req, res) {
   const studentID = req.params.id
-
   db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (result, err) {
     if (err) {
       console.log(err)
@@ -155,7 +168,6 @@ router.post('/saveEditDelibration/:id', function (req, res) {
 // 取得當前議事下的所有議案供修改
 router.post('/editProposals/:id', function (req, res) {
   const studentID = req.params.id
-
   db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (result, err) {
     if (err) {
       console.log(err)
@@ -163,18 +175,12 @@ router.post('/editProposals/:id', function (req, res) {
     } else {
       if (result.length !== 0) {
         const delibrationID = req.body.delibrationID
-        db.Query('SELECT * FROM proposal where delibrationID = "' + delibrationID + '"', function (proposals, err) {
+        db.Query('SELECT dept, reason, description, discussion FROM proposal where delibrationID = "' + delibrationID + '"', function (proposals, err) {
           if (err) {
             console.log(err)
             res.sendStatus(500)
           } else {
-            if (proposals.length === 0) {
-              res.status(404).json({
-                message: 'Cannnot find'
-              })
-            } else {
-              res.status(200).send(proposals)
-            }
+            res.status(200).send(proposals)
           }
         })
       } else {
