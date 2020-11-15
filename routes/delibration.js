@@ -71,16 +71,19 @@ router.get('/leader', function (req, res) {
   })
 })
 
+// 已測試
 // 刪除議事
-router.post('/deleteDelibration/:delibrationID', function (req, res) {
-  const delibrationID = req.params.delibrationID
+router.post('/deleteDelibration', function (req, res) {
+  const delibrationID = req.body.delibrationID
 
   db.DeleteById('delibration', delibrationID, function (err, result) {
     if (err) {
       console.log(err)
-      res.sendStatus(400)
+      res.sendStatus(500)
     } else {
-      res.sendStatus(200)
+      res.status(200).json({
+        message: 'success'
+      })
     }
   })
 })
@@ -148,28 +151,35 @@ router.post('/saveEditDelibration/:id', function (req, res) {
   })
 })
 
+// 已測試
 // 取得當前議事下的所有議案供修改
 router.post('/editProposals/:id', function (req, res) {
-  const userID = req.params.id
-  const delibrationID = req.body.delibrationID
+  const studentID = req.params.id
 
-  db.FindbyColumn('user', ['position'], { id: userID }, function (result) {
-    if (result[0].position === 'leader') {
-      const sql = "SELECT * FROM proposal where delibrationID = '" + delibrationID + "'"
-      db.Query(sql, function (proposals, err) {
-        if (err) {
-          console.log(err)
-          res.sendStatus(400)
-        } else {
-          if (proposals.length === 0) {
-            res.status(404).send('Cannnot find.')
-          } else {
-            res.status(200).send(proposals)
-          }
-        }
-      })
+  db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (result, err) {
+    if (err) {
+      console.log(err)
+      res.sendStatus(500)
     } else {
-      res.sendStatus(403)
+      if (result.length !== 0) {
+        const delibrationID = req.body.delibrationID
+        db.Query('SELECT * FROM proposal where delibrationID = "' + delibrationID + '"', function (proposals, err) {
+          if (err) {
+            console.log(err)
+            res.sendStatus(500)
+          } else {
+            if (proposals.length === 0) {
+              res.status(404).json({
+                message: 'Cannnot find'
+              })
+            } else {
+              res.status(200).send(proposals)
+            }
+          }
+        })
+      } else {
+        res.sendStatus(403)
+      }
     }
   })
 })
