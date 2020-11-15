@@ -6,12 +6,12 @@ const db = require('../models/db')
 router.post('/signup', function (req, res) {
   const studentID = req.body.studentID
 
-  db.Query('SELECT studentID FROM `user`', function (students, err) {
+  db.Query('SELECT * FROM `user` WHERE studentID = "' + studentID + '"', function (result, err) {
     if (err) {
       console.log(err)
       res.statusCode(500)
     } else {
-      if (students.indexOf(studentID) !== -1) {
+      if (result.length !== 0) {
         res.status(400).json({
           message: 'duplicated'
         })

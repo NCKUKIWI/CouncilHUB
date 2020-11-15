@@ -57,6 +57,7 @@ const db = require('../models/db')
 //   }
 // })
 
+// 已測試
 // 議長取得所有議事內容
 router.get('/leader', function (req, res) {
   const sql = 'SELECT * FROM delibration order by startTime DESC'
@@ -84,6 +85,7 @@ router.post('/deleteDelibration/:delibrationID', function (req, res) {
   })
 })
 
+// 已測試
 // 新增議事
 router.post('/createDelibration', function (req, res) {
   // var startTime = moment(data.myTime.format(req.body["startTime"])).toISOString();
@@ -115,37 +117,38 @@ router.post('/createDelibration', function (req, res) {
   }
 })
 
+// 已測試
 // 儲存修改的議事
 router.post('/saveEditDelibration/:id', function (req, res) {
-  const userID = req.params.id
+  const studentID = req.params.id
 
-  const dataDelibration = {
-    dName: req.body.name,
-    createTime: req.body.createTime,
-    startTime: req.body.startTime,
-    endTime: req.body.endTime,
-    position: req.body.position,
-    semester: req.body.semester,
-    period: req.body.period
-  }
-
-  db.FindbyColumn('user', ['position'], { id: userID }, function (result) {
-    if (result[0].position === 'leader') {
-      db.Update('delibration', dataDelibration, { id: req.body.delibrationID }, function (err) {
-        if (err) {
-          console.log(err)
-          res.sendStatus(400)
-        } else {
-          res.sendStatus(201)
-        }
-      })
+  db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (result, err) {
+    if (err) {
+      console.log(err)
+      res.sendStatus(500)
     } else {
-      res.sendStatus(403)
+      if (result.length !== 0) {
+        const dataDelibration = {
+          dName: req.body.dName,
+          startTime: req.body.startTime,
+          endTime: req.body.endTime,
+          position: req.body.position,
+          semester: req.body.semester,
+          period: req.body.period
+        }
+        db.Update('delibration', dataDelibration, { id: req.body.delibrationID }, function (result) {
+          res.status(200).json({
+            message: 'success'
+          })
+        })
+      } else {
+        res.sendStatus(403)
+      }
     }
   })
 })
 
-// 取得當前意識下的所有議案供修改
+// 取得當前議事下的所有議案供修改
 router.post('/editProposals/:id', function (req, res) {
   const userID = req.params.id
   const delibrationID = req.body.delibrationID
