@@ -44,36 +44,36 @@ router.post('/signup', function (req, res) {
     })
 })
 
-router.post('/login', function (req, res) {
-    const ID = req.body.studentID;
-    const pw = req.body.password;
-    db.Query("SELECT password FROM `user` WHERE studentID='" + ID + "'", function (password, err) {
-        console.log(password.length);
-        if (err) {
-            console.log(err);
-        } else if (password.length == 0) {
-            res.status(200).send("unexist");
-        } else {
-            if (pw == password[0]["password"]) {
-                db.Query("SELECT name FROM `position` WHERE studentID ='" + ID + "'", function (name, err) {
-                    let data = {
-                        "studentID": ID,
-                        "isLeader": false
-                    }
-                    for (let i = 0; i < name.length; i++) {
-                        if (name[i]["name"] == "議長") {
-                            data.isLeader = true;
-                        }
-                    }
-                    req.session.studentID = ID;
-                    res.status(200).send(data);
-                })
-            } else {
-                res.sendStatus(403);
-            }
-        }
-    })
-})
+// router.post('/login', function (req, res) {
+//     const ID = req.body.studentID;
+//     const pw = req.body.password;
+//     db.Query("SELECT password FROM `user` WHERE studentID='" + ID + "'", function (password, err) {
+//         console.log(password.length);
+//         if (err) {
+//             console.log(err);
+//         } else if (password.length == 0) {
+//             res.status(200).send("unexist");
+//         } else {
+//             if (pw == password[0]["password"]) {
+//                 db.Query("SELECT name FROM `position` WHERE studentID ='" + ID + "'", function (name, err) {
+//                     let data = {
+//                         "studentID": ID,
+//                         "isLeader": false
+//                     }
+//                     for (let i = 0; i < name.length; i++) {
+//                         if (name[i]["name"] == "議長") {
+//                             data.isLeader = true;
+//                         }
+//                     }
+//                     req.session.studentID = ID;
+//                     res.status(200).send(data);
+//                 })
+//             } else {
+//                 res.sendStatus(403);
+//             }
+//         }
+//     })
+// })
 
 // router.post('/changeRole', function(req, res){
 //     var condition = {

@@ -1,28 +1,12 @@
 var express = require('express');
 var app = express();
 var bodyParser = require("body-parser");
-var session = require("express-session");
-var RedisStore = require("connect-redis")(session);
-var cache = require("./helper/cache");
-var redisHelper = cache.redis
 var socket = require('socket.io');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: false
 }));
-
-app.use(session({
-    cookie: {
-        maxAge: 1000*60*60*24
-    },
-    secret: "secret",
-    sevaUninitialized: true,
-    resave: true,
-    store: new RedisStore({
-	    client: redisHelper
-    })
-}))
 
 var http = app.listen(3000, function () {
     console.log('Example app listening on port 3000!');
