@@ -36,17 +36,20 @@ router.post('/signup', function (req, res) {
             res.statusCode(500)
           } else {
             if (positionArray.length > 0) {
+              let count = 0
               for (let i = 0; i < positionArray.length; i++) {
                 dataPosition.name = positionArray[i]
                 db.Insert('position', dataPosition, function (err, result) {
                   if (err) {
                     console.log(err)
                     res.statusCode(500)
-                  }
-                  if (i === positionArray.length - 1) {
-                    res.status(200).json({
-                      message: 'success'
-                    })
+                  } else {
+                    count += 1
+                    if (count === positionArray.length) {
+                      res.status(200).json({
+                        message: 'success'
+                      })
+                    }
                   }
                 })
               }

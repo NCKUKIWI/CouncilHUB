@@ -2,27 +2,87 @@ const express = require('express')
 const router = express.Router()
 const db = require('../models/db')
 
-// 取得某特定議事的所有議案的提案單位名稱
 // 已測試
-router.get('/:delibrationID', function (req, res) {
-  const id = req.params.delibrationID
-  db.Query('SELECT name FROM proposal WHERE delibrationID =' + id, function (result) {
-    if (result.length === 0) {
-      res.send('None')
+// 新增議案
+router.post('/createProposal', function (req, res) {
+  const data = {
+    delibrationID: req.body.delibrationID,
+    dept: req.body.dept,
+    reason: req.body.reason,
+    description: req.body.description,
+    discussion: req.body.discussion,
+    name: req.body.name
+    // isVoting在資料庫裡預設為0
+  }
+
+  db.Insert('proposal', data, function (err, result) {
+    if (err) {
+      console.log(err)
+      res.sendStatus(500)
     } else {
-      res.json(result)
+      res.status(200).json({
+        message: 'success'
+      })
     }
   })
 })
 
+// 已測試
+// 刪除議案
+router.post('/deleteProposal', function (req, res) {
+  const proposalID = req.body.proposalID
+
+  db.DeleteById('proposal', proposalID, function (err, result) {
+    if (err) {
+      console.log(err)
+      res.sendStatus(500)
+    } else {
+      res.status(200).json({
+        message: 'success'
+      })
+    }
+  })
+})
+
+// 已測試
+// 取得某特定議事的所有議案的提案單位名稱
+router.get('/:delibrationID', function (req, res) {
+  const id = req.params.delibrationID
+  db.Query('SELECT id, name FROM proposal WHERE delibrationID =' + id, function (result, err) {
+    if (err) {
+      console.log(err)
+      res.sendStatus(500)
+    } else {
+      res.status(200).json(result)
+    }
+  })
+})
+
+// 已測試
+// 取得某特定議事的某特定議案的資料
+router.get('/:delibrationID/:proposalID', function (req, res) {
+  const delibrationID = req.params.delibrationID
+  const proposalID = req.params.proposalID
+
+  db.Query('SELECT dept, reason, description, discussion FROM `proposal` WHERE id = "' + proposalID + '" AND delibrationID = "' + delibrationID + '"', function (result, err) {
+    if (err) {
+      console.log(err)
+      res.sendStatus(500)
+    } else {
+      res.status(200).send(result)
+    }
+  })
+})
+
+// 已測試
 router.post('/voteResults', function (req, res) {
   const proposalID = req.body.proposalID
   const isAmendment = req.body.amendment
-  const selectResultSql = 'SELECT result FROM `vote` WHERE WHERE proposalID = ' + proposalID + ' and amendment = ' + isAmendment
+  const selectResultSql = 'SELECT result FROM `vote` WHERE proposalID = ' + proposalID + ' AND amendment = ' + isAmendment
   db.Query(selectResultSql, function (votes, err) {
     if (err) {
       console.log(err)
-      res.sendStatus(400)
+      res.sendStatus(500)
     } else {
       let agree = 0
       let disagree = 0
@@ -51,25 +111,7 @@ router.post('/voteResults', function (req, res) {
   })
 })
 
-// 取得某特定議事的某特定議案的資料
-router.get('/:delibrationID/:proposalID', function (req, res) {
-  const condition = {
-    delibrationID: req.params.delibrationID,
-    proposalID: req.params.proposalID
-  }
-
-  const cols = ['id', 'dept', 'reason', 'description', 'discussion']
-
-  db.FindbyColumn('proposal', cols, condition, function (err, result) {
-    if (err) {
-      console.log(err)
-      res.sendStatus(400)
-    } else {
-      res.status(200).send(result)
-    }
-  })
-})
-
+// 已測試
 router.post('/resultsList', function (req, res) {
   const proposalID = req.body.proposalID
   const isAmendment = req.body.amendment
@@ -77,27 +119,28 @@ router.post('/resultsList', function (req, res) {
   db.Query(selectVoteSql, function (votesInfo, err) {
     if (err) {
       console.log(err)
-      res.sendStatus(400)
+      res.sendStatus(500)
     } else {
       const data = []
+      let count = 0
       for (const n in votesInfo) {
-        // console.log(votesInfo[n])
-        const column = ['department', 'uName']
-        db.FindbyColumn('user', column, { studentID: votesInfo[n].studentID }, function (userinfo, err) {
+        const selectUserSql = 'SELECT department, name FROM `user` WHERE studentID = "' + votesInfo[n].studentID + '"'
+        db.Query(selectUserSql, function (userinfo, err) {
           if (err) {
             console.log(err)
-            res.sendStatus(400)
+            res.sendStatus(500)
           } else {
+            count += 1
             const studentVoteInfo = {
               index: parseInt(n) + 1,
               department: userinfo[0].department,
-              name: userinfo[0].uName,
+              name: userinfo[0].name,
               voteResult: votesInfo[n].result
             }
             // console.log("PPP: ", studentVoteInfo)
             data.push(studentVoteInfo)
 
-            if (n === votesInfo.length - 1) {
+            if (count === votesInfo.length) {
               res.status(200).send(data)
             }
           }
@@ -107,99 +150,73 @@ router.post('/resultsList', function (req, res) {
   })
 })
 
+// 已測試
 router.post('/voteAmendment', function (req, res) {
   const proposalID = req.body.proposalID
   const studentID = req.body.studentID
   const result = req.body.result
-  const voteResultSql = 'INSERT INTO vote (proposalID, studentID, result, amendment) VALUES ( ' + proposalID + ", '" + studentID + "', " + result + ', 1)'
+  const voteResultSql = 'INSERT INTO vote (proposalID, studentID, result, amendment) VALUES ( ' + proposalID + ', "' + studentID + '", ' + result + ', 1)'
   db.Query(voteResultSql, function (voteResult, err) {
     if (err) {
       console.log(err)
-      res.sendStatus(400)
+      res.sendStatus(500)
     } else {
-      res.sendStatus(200)
+      res.status(200).json({
+        message: 'success'
+      })
     }
   })
 })
 
+// 已測試
 router.post('/voteResolution', function (req, res) {
   const proposalID = req.body.proposalID
   const studentID = req.body.studentID
   const result = req.body.result
-  const voteResultSql = 'INSERT INTO vote (proposalID, studentID, result, amendment) VALUES ( ' + proposalID + ", '" + studentID + "', " + result + ', 0)'
+  const voteResultSql = 'INSERT INTO vote (proposalID, studentID, result, amendment) VALUES ( ' + proposalID + ', "' + studentID + '", ' + result + ', 0)'
   db.Query(voteResultSql, function (voteResult, err) {
     if (err) {
       console.log(err)
-      res.sendStatus(400)
+      res.sendStatus(500)
     } else {
-      res.sendStatus(200)
+      res.status(200).json({
+        message: 'success'
+      })
     }
   })
 })
 
-// 新增議案
 // 已測試
-router.post('/createProposal/:delibrationID', function (req, res) {
-  console.log(req.body.dept)
-  const data = {
-    delibrationID: req.params.delibrationID,
-    dept: req.body.dept,
-    reason: req.body.reason,
-    description: req.body.description,
-    name: req.body.name
-    // isVoting在資料庫裡預設為0
-  }
-
-  db.Insert('proposal', data, function (err, result) {
-    if (err) {
-      console.log(err)
-      res.status(403).send()
-    } else {
-      res.status(201).send()
-    }
-  })
-})
-
-// 刪除議案
-router.post('/deleteProposal/:proposalID', function (req, res) {
-  const proposalID = req.params.proposalID
-
-  db.DeleteById('proposal', proposalID, function (err, result) {
-    if (err) {
-      console.log(err)
-      res.sendStatus(400)
-    } else {
-      res.sendStatus(200)
-    }
-  })
-})
-
 // 儲存修改的議案
 router.post('/saveEditProposals/:id', function (req, res) {
-  const userID = req.params.id
-  const proposals = req.body.proposal
-
-  db.FindbyColumn('user', ['position'], { id: userID }, function (result) {
-    if (result[0].position === 'leader') {
-      for (const data in proposals) {
-        const dataProposal = {
-          dept: proposals[data].dept,
-          reason: proposals[data].reason,
-          description: proposals[data].description,
-          discussion: proposals[data].discussion
-        }
-
-        db.Update('proposal', dataProposal, { id: proposals[data].proposalID }, function (err) {
-          if (err) {
-            console.log(err)
-            res.sendStatus(400)
-          } else {
-            res.sendStatus(201)
-          }
-        })
-      }
+  const studentID = req.params.id
+  db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (result, err) {
+    if (err) {
+      console.log(err)
+      res.sendStatus(500)
     } else {
-      res.sendStatus(403)
+      if (result.length !== 0) {
+        const proposals = req.body.proposal
+        let count = 0
+        for (const data in proposals) {
+          const dataProposal = {
+            dept: proposals[data].dept,
+            reason: proposals[data].reason,
+            description: proposals[data].description,
+            discussion: proposals[data].discussion
+          }
+          db.Update('proposal', dataProposal, { id: proposals[data].proposalID }, function (result) {
+            count += 1
+            if (count === proposals.length) {
+              res.status(200).json({
+                message: 'success'
+              })
+            }
+          })
+        }
+      } else {
+        res.sendStatus(403)
+      }
     }
   })
 })
