@@ -75,8 +75,9 @@ exports.FindbyColumn = function FindbyColumn (table, cols, conditions, callback)
   let columns = ''
   for (const i in cols) {
     columns += cols[i]
-    if (i !== cols.length - 1) {
+    if (i !== (cols.length - 1)) {
       columns += ','
+      console.log('columns: ' + columns + '; i: ' + i + '; cols.length: ' + (cols.length - 1))
     }
   }
   const condition = conditionjoin(conditions)

@@ -3,6 +3,7 @@ const router = express.Router()
 const db = require('../models/db')
 
 // 取得某特定議事的所有議案的提案單位名稱
+// 已測試
 router.get('/:delibrationID', function (req, res) {
   const id = req.params.delibrationID
   db.Query('SELECT name FROM proposal WHERE delibrationID =' + id, function (result) {
@@ -53,8 +54,8 @@ router.post('/voteResults', function (req, res) {
 // 取得某特定議事的某特定議案的資料
 router.get('/:delibrationID/:proposalID', function (req, res) {
   const condition = {
-    delibrationID: req.body.delibrationID,
-    proposalID: req.body.proposalID
+    delibrationID: req.params.delibrationID,
+    proposalID: req.params.proposalID
   }
 
   const cols = ['id', 'dept', 'reason', 'description', 'discussion']
@@ -137,12 +138,16 @@ router.post('/voteResolution', function (req, res) {
 })
 
 // 新增議案
+// 已測試
 router.post('/createProposal/:delibrationID', function (req, res) {
+  console.log(req.body.dept)
   const data = {
     delibrationID: req.params.delibrationID,
     dept: req.body.dept,
     reason: req.body.reason,
-    description: req.body.description
+    description: req.body.description,
+    name: req.body.name
+    // isVoting在資料庫裡預設為0
   }
 
   db.Insert('proposal', data, function (err, result) {
