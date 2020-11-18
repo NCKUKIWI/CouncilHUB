@@ -1,7 +1,7 @@
 {
   "name": "bfish",
   "version": "1.0.0",
-  "description": "",
+  "description": "```\r ├── app.js//server\r ├── node_modules\r ├── package.json\r ├── config.json\r ├── routes//根據收到的request，進入不同routes\r │   ├── user\r │   ├── proposal\r │   └── delibration\r ├── models//從DB中找尋資料，對資料進行後處理\r │   └── db.js\r │── controller\r │   ├── userr_controller.js\r │   ├── proposal_controller.js\r │   └── delibration_controller.js\r ├── assets\r │   ├── css\r │   ├── image\r │   └── javascripts\r └── views\r     ├── public\r     └── xxxx.ejs\r ```",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -24,5 +24,13 @@
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NCKUKIWI/CouncilHUB.git"
+  },
+  "bugs": {
+    "url": "https://github.com/NCKUKIWI/CouncilHUB/issues"
+  },
+  "homepage": "https://github.com/NCKUKIWI/CouncilHUB#readme"
 }

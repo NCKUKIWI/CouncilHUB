@@ -3,10 +3,26 @@ const app = express()
 const bodyParser = require('body-parser')
 const socket = require('socket.io')
 const db = require('./models/db')
+const session = require('express-session')
+const RedisStore = require('connect-redis')(session)
+const cache = require('./helper/cache')
+const redisHelper = cache.redis
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({
   extended: false
+}))
+
+app.use(session({
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24
+  },
+  secret: 'secret',
+  sevaUninitialized: true,
+  resave: true,
+  store: new RedisStore({
+    client: redisHelper
+  })
 }))
 
 const http = app.listen(3000, function () {

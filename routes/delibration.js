@@ -1,61 +1,65 @@
 const express = require('express')
 const router = express.Router()
 const db = require('../models/db')
-// const delibrationCacheKey = cache.delibrationCacheKey
+const cache = require('../helper/cache')
+const redis = cache.redis
+const delibrationCacheKey = cache.delibrationCacheKey
 
-// // 取得權限內議事內容
-// router.get('/', function (req, res) {
-//   const studentID = req.session.studentID
-//   if (studentID) {
-//     redis.get(delibrationCacheKey(studentID), function (err, reply) {
-//       if (reply) {
-//         const data = JSON.parse(reply)
-//         // console.log("redis read success");
-//         res.status(200).send(data)
-//       } else {
-//         db.Query('select * from position where studentID = "' + studentID + '";', function (positionResult, err) {
-//           if (err) throw err
-//           if (positionResult.length === 0) {
-//             db.Query('select * from delibration where position is null;', function (delibrationResult, err) {
-//               if (err) {
-//                 console.log(err)
-//                 res.status(403).send('err')
-//               } else {
-//                 redis.set(delibrationCacheKey(studentID), JSON.stringify(delibrationResult))
-//                 res.status(200).send(delibrationResult)
-//               }
-//             })
-//           } else {
-//             let sql = 'select * from delibration where position in ('
-//             console.log('position result: ' + positionResult)
-//             for (const n in positionResult) {
-//               console.log('index:' + n + ', position:' + positionResult[n].name + '\n')
-//               sql = sql + '"' + positionResult[n].name + '"'
-//               if (n === positionResult.length - 1) {
-//                 sql = sql + ')'
-//               } else {
-//                 sql = sql + ','
-//               }
-//             }
-//             sql = sql + ' or position is null;'
-//             // console.log(sql);
-//             db.Query(sql, function (delibrationResult) {
-//               if (err) {
-//                 console.log(err)
-//                 res.status(403).send('err')
-//               } else {
-//                 redis.set(delibrationCacheKey(studentID), JSON.stringify(delibrationResult))
-//                 res.status(200).send(delibrationResult)
-//               }
-//             })
-//           }
-//         })
-//       }
-//     })
-//   } else {
-//     res.redirect('/')
-//   }
-// })
+// 已測試
+// 取得權限內議事內容
+router.get('/', function (req, res) {
+  const studentID = req.session.studentID
+  if (studentID) {
+    redis.get(delibrationCacheKey(studentID), function (err, reply) {
+      if (err) throw err
+      if (reply) {
+        const data = JSON.parse(reply)
+        // console.log("redis read success");
+        res.status(200).send(data)
+      } else {
+        db.Query('select * from position where studentID = "' + studentID + '";', function (positionResult, err) {
+          if (err) throw err
+          if (positionResult.length === 0) {
+            db.Query('select * from delibration where position is null;', function (delibrationResult, err) {
+              if (err) {
+                console.log(err)
+                res.status(403).send('err')
+              } else {
+                redis.set(delibrationCacheKey(studentID), JSON.stringify(delibrationResult))
+                res.status(200).send(delibrationResult)
+              }
+            })
+          } else {
+            let sql = 'select * from delibration where position in ('
+            console.log('position result: ' + positionResult)
+            for (const n in positionResult) {
+              console.log('index:' + n + ', position:' + positionResult[n].name + '\n')
+              sql = sql + '"' + positionResult[n].name + '"'
+              if (parseInt(n) === positionResult.length - 1) {
+                sql = sql + ')'
+              } else {
+                sql = sql + ','
+              }
+            }
+            sql = sql + ' or position is null;'
+            // console.log(sql);
+            db.Query(sql, function (delibrationResult) {
+              if (err) {
+                console.log(err)
+                res.status(403).send('err')
+              } else {
+                redis.set(delibrationCacheKey(studentID), JSON.stringify(delibrationResult))
+                res.status(200).send(delibrationResult)
+              }
+            })
+          }
+        })
+      }
+    })
+  } else {
+    res.redirect('/')
+  }
+})
 
 // 已測試
 // 議長取得所有議事內容
