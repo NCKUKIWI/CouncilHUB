@@ -142,7 +142,7 @@ router.post('/voteResolution', function (req, res) {
 })
 
 // 儲存修改的議案
-router.post('/saveEditProposals', function (req, res) {
+router.put('/saveEditProposals', function (req, res) {
   const studentID = req.session.studentID
   db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (err, result) {
     if (err) {
@@ -150,28 +150,113 @@ router.post('/saveEditProposals', function (req, res) {
       res.sendStatus(500)
     } else {
       if (result.length !== 0) {
+        const delibrationID = req.body.delibrationID
         const proposals = req.body.proposal
-        let count = 0
+        const proposalIDList = []
+        let proposalCount = 0
         for (const data in proposals) {
+          const proposalID = proposals[data].proposalID
+          proposalIDList.push(proposalID)
           const dataProposal = {
+            delibrationID: delibrationID,
             dept: proposals[data].dept,
+            name: proposals[data].name,
             reason: proposals[data].reason,
-            description: proposals[data].description,
-            discussion: proposals[data].discussion
+            description: proposals[data].description
           }
-          db.Update('proposal', dataProposal, { id: proposals[data].proposalID }, function (err, result) {
-            if (err) {
-              console.log(err)
-              res.sendStatus(500)
-            } else {
-              count += 1
-              if (count === proposals.length) {
-                res.status(200).json({
-                  message: 'success'
+          if (proposalID === -1) {
+            db.Insert('proposal', dataProposal, function (err, result) {
+              if (err) {
+                console.log(err)
+                res.sendStatus(500)
+              }
+              proposalCount += 1
+              if (proposalCount === proposals.length) {
+                db.Query('SELECT id FROM `proposal` WHERE delibrationID = "' + delibrationID + '"', function (err, result) {
+                  if (err) {
+                    console.log(err)
+                    res.sendStatus(500)
+                  }
+                  if (result.length === 0) {
+                    res.status(200).json({
+                      message: 'success'
+                    })
+                  } else {
+                    let idCount = 0
+                    for (const n in result) {
+                      if (proposalIDList.includes(result[n].id)) {
+                        idCount += 1
+                        if (idCount === result.length) {
+                          res.status(200).json({
+                            message: 'success'
+                          })
+                        }
+                      } else {
+                        db.DeleteById('proposal', result[n].id, function (err) {
+                          if (err) {
+                            console.log(err)
+                            res.sendStatus(500)
+                          }
+                          idCount += 1
+                          if (idCount === result.length) {
+                            res.status(200).json({
+                              message: 'success'
+                            })
+                          }
+                        })
+                      }
+                    }
+                  }
                 })
               }
-            }
-          })
+            })
+          } else {
+            db.Update('proposal', dataProposal, { id: proposalID }, function (err, result) {
+              if (err) {
+                console.log(err)
+                res.sendStatus(500)
+              }
+              proposalCount += 1
+              if (proposalCount === proposals.length) {
+                db.Query('SELECT id FROM `proposal` WHERE delibrationID = "' + delibrationID + '"', function (err, result) {
+                  if (err) {
+                    console.log(err)
+                    res.sendStatus(500)
+                  }
+                  if (result.length === 0) {
+                    res.status(200).json({
+                      message: 'success'
+                    })
+                  } else {
+                    let idCount = 0
+                    for (const n in result) {
+                      if (proposalIDList.includes(result[n].id)) {
+                        idCount += 1
+                        if (idCount === result.length) {
+                          res.status(200).json({
+                            message: 'success'
+                          })
+                        }
+                      } else {
+                        db.DeleteById('proposal', result[n].id, function (err) {
+                          if (err) {
+                            console.log(err)
+                            res.sendStatus(500)
+                          }
+                          idCount += 1
+                          if (idCount === result.length) {
+                            res.status(200).json({
+                              message: 'success'
+                            })
+                          }
+                        })
+                      }
+                    }
+                  }
+                })
+              }
+            })
+          }
         }
       } else {
         res.sendStatus(403)
