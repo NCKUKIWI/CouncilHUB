@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+const cors = require('cors')
 const bodyParser = require('body-parser')
 const socket = require('socket.io')
 const db = require('./models/db')
@@ -8,6 +9,10 @@ const RedisStore = require('connect-redis')(session)
 const cache = require('./helper/cache')
 const redisHelper = cache.redis
 
+app.use(cors({
+  credentials: true,
+  origin: 'http://localhost:8080'
+}))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({
   extended: false
@@ -18,7 +23,7 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 24
   },
   secret: 'secret',
-  sevaUninitialized: true,
+  saveUninitialized: true,
   resave: true,
   store: new RedisStore({
     client: redisHelper
@@ -37,6 +42,24 @@ app.get('/', function (req, res) {
 app.use('/user', require('./routes/user'))
 app.use('/proposal', require('./routes/proposal'))
 app.use('/delibration', require('./routes/delibration'))
+
+app.use(notFound)
+app.use(errorHandler)
+
+function errorHandler (err, req, res, next) {
+  const statusCode = res.statusCode !== 200 ? res.statusCode : 500
+  res.status(statusCode)
+  res.json({
+    message: err.message,
+    stack: process.env.NODE_ENV === 'production' ? '🥞' : err.stack
+  })
+}
+
+function notFound (req, res, next) {
+  res.status(404)
+  const error = new Error(`🔍 - Not Found - ${req.originalUrl}`)
+  next(error)
+}
 
 io.on('connection', (socket) => {
   socket.on('entryVote', (msg) => { // 點進議案觸發

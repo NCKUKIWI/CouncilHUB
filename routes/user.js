@@ -6,7 +6,7 @@ const db = require('../models/db')
 router.post('/signup', function (req, res) {
   const studentID = req.body.studentID
 
-  db.Query('SELECT * FROM `user` WHERE studentID = "' + studentID + '"', function (result, err) {
+  db.Query('SELECT * FROM `user` WHERE studentID = "' + studentID + '"', function (err, result) {
     if (err) {
       console.log(err)
       res.statusCode(500)
@@ -69,15 +69,21 @@ router.post('/signup', function (req, res) {
 router.post('/login', function (req, res) {
   const ID = req.body.studentID
   const pw = req.body.password
-  db.Query("SELECT password FROM `user` WHERE studentID='" + ID + "'", function (password, err) {
-    console.log(password.length)
+  db.Query("SELECT password FROM `user` WHERE studentID = '" + ID + "'", function (err, password) {
     if (err) {
       console.log(err)
+      res.sendStatus(500)
     } else if (password.length === 0) {
-      res.status(200).send('unexist')
+      res.status(200).json({
+        message: 'not exist'
+      })
     } else {
       if (pw === password[0].password) {
-        db.Query("SELECT name FROM `position` WHERE studentID ='" + ID + "'", function (name, err) {
+        db.Query("SELECT name FROM `position` WHERE studentID = '" + ID + "'", function (err, name) {
+          if (err) {
+            console.log(err)
+            res.sendStatus(500)
+          }
           const data = {
             studentID: ID,
             isLeader: false

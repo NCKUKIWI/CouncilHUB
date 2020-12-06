@@ -10,8 +10,8 @@ exports.Insert = function Insert (table, data, callback) {
   }
   console.log('}')
   connection.query(sql, data, function (err, results) {
-    if (err) throw err
-    console.log('Create Success!')
+    // if (err) throw err
+    // console.log('Create Success!')
     callback(err, results)
   })
 }
@@ -20,8 +20,8 @@ exports.DeleteById = function DeleteById (table, id, callback) {
   const sql = 'DELETE FROM ' + table + ' WHERE id = ' + id
   console.log(sql)
   connection.query(sql, function (err, results) {
-    if (err) throw err
-    console.log('DELETE Success!')
+    // if (err) throw err
+    // console.log('DELETE Success!')
     callback(err)
   })
 }
@@ -150,8 +150,8 @@ exports.Update = function Update (table, datas, conditions, callback) {
   }
   console.log('}')
   connection.query(sql, function (err, results) {
-    if (err) throw err
-    callback(results)
+    // if (err) throw err
+    callback(err, results)
   })
 }
 
@@ -167,8 +167,8 @@ exports.UpdatePlusone = function UpdatePlusone (table, col, id, callback) {
 exports.Query = function Query (sql, callback) {
   console.log(sql)
   connection.query(sql, function (err, results, fields) {
-    if (err) throw err
-    callback(results)
+    // if (err) throw err
+    callback(err, results)
   })
 }
 
