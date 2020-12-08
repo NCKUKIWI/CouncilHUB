@@ -22,7 +22,7 @@ exports.DeleteById = function DeleteById (table, id, callback) {
   connection.query(sql, function (err, results) {
     // if (err) throw err
     // console.log('DELETE Success!')
-    callback(err)
+    callback(err, results)
   })
 }
 

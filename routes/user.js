@@ -10,57 +10,54 @@ router.post('/signup', function (req, res) {
     if (err) {
       console.log(err)
       res.statusCode(500)
+    }
+    if (result.length !== 0) {
+      res.status(400).json({
+        message: 'duplicated'
+      })
     } else {
-      if (result.length !== 0) {
-        res.status(400).json({
-          message: 'duplicated'
-        })
-      } else {
-        const data = {
-          studentID: studentID,
-          department: req.body.department,
-          grade: req.body.grade,
-          email: req.body.email,
-          name: req.body.name,
-          password: req.body.password
-        }
-        const positionArray = req.body.position
-        const dataPosition = {
-          studentID: studentID,
-          name: ''
-        }
+      const data = {
+        studentID: studentID,
+        department: req.body.department,
+        grade: req.body.grade,
+        email: req.body.email,
+        name: req.body.name,
+        password: req.body.password
+      }
+      const positionArray = req.body.position
+      const dataPosition = {
+        studentID: studentID,
+        name: ''
+      }
 
-        db.Insert('user', data, function (err, result) {
-          if (err) {
-            console.log(err)
-            res.statusCode(500)
-          } else {
-            if (positionArray.length > 0) {
-              let count = 0
-              for (let i = 0; i < positionArray.length; i++) {
-                dataPosition.name = positionArray[i]
-                db.Insert('position', dataPosition, function (err, result) {
-                  if (err) {
-                    console.log(err)
-                    res.statusCode(500)
-                  } else {
-                    count += 1
-                    if (count === positionArray.length) {
-                      res.status(200).json({
-                        message: 'success'
-                      })
-                    }
-                  }
+      db.Insert('user', data, function (err, result) {
+        if (err) {
+          console.log(err)
+          res.statusCode(500)
+        }
+        if (positionArray.length > 0) {
+          let count = 0
+          for (let i = 0; i < positionArray.length; i++) {
+            dataPosition.name = positionArray[i]
+            db.Insert('position', dataPosition, function (err, result) {
+              if (err) {
+                console.log(err)
+                res.statusCode(500)
+              }
+              count += 1
+              if (count === positionArray.length) {
+                res.status(200).json({
+                  message: 'success'
                 })
               }
-            } else {
-              res.status(200).json({
-                message: 'success'
-              })
-            }
+            })
           }
-        })
-      }
+        } else {
+          res.status(200).json({
+            message: 'success'
+          })
+        }
+      })
     }
   })
 })
@@ -73,7 +70,8 @@ router.post('/login', function (req, res) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
-    } else if (password.length === 0) {
+    }
+    if (password.length === 0) {
       res.status(200).json({
         message: 'not exist'
       })
@@ -114,10 +112,9 @@ router.post('/login', function (req, res) {
 //   db.Update('user', data, condition, function (err, result) {
 //     if (err) {
 //       console.log(err)
-//       res.sendStatus(400)
-//     } else {
-//       res.sendStatus(200)
+//       res.sendStatus(500)
 //     }
+//     res.sendStatus(200)
 //   })
 // })
 
@@ -132,10 +129,9 @@ router.post('/login', function (req, res) {
 //   db.Update('user', data, condition, function (err, result) {
 //     if (err) {
 //       console.log(err)
-//       res.sendStatus(400)
-//     } else {
-//       res.sendStatus(200)
+//       res.sendStatus(500)
 //     }
+//     res.sendStatus(200)
 //   })
 // })
 

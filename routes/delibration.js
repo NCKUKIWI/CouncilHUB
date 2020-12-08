@@ -17,7 +17,6 @@ router.get('/', function (req, res) {
       }
       if (reply) {
         const data = JSON.parse(reply)
-        // console.log("redis read success");
         res.status(200).send(data)
       } else {
         db.Query('select * from position where studentID = "' + studentID + '";', function (err, positionResult) {
@@ -30,10 +29,9 @@ router.get('/', function (req, res) {
               if (err) {
                 console.log(err)
                 res.sendStatus(500)
-              } else {
-                redis.set(delibrationCacheKey(studentID), JSON.stringify(delibrationResult))
-                res.status(200).send(delibrationResult)
               }
+              redis.set(delibrationCacheKey(studentID), JSON.stringify(delibrationResult))
+              res.status(200).send(delibrationResult)
             })
           } else {
             let sql = 'select * from delibration where position in ('
@@ -53,10 +51,9 @@ router.get('/', function (req, res) {
               if (err) {
                 console.log(err)
                 res.sendStatus(500)
-              } else {
-                redis.set(delibrationCacheKey(studentID), JSON.stringify(delibrationResult))
-                res.status(200).send(delibrationResult)
               }
+              redis.set(delibrationCacheKey(studentID), JSON.stringify(delibrationResult))
+              res.status(200).send(delibrationResult)
             })
           }
         })
@@ -75,9 +72,8 @@ router.get('/leader', function (req, res) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
-    } else {
-      res.status(200).send(delibrations)
     }
+    res.status(200).send(delibrations)
   })
 })
 
@@ -88,22 +84,20 @@ router.delete('/deleteDelibration', function (req, res) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
-    } else {
-      if (result.length !== 0) {
-        const delibrationID = req.body.delibrationID
-        db.DeleteById('delibration', delibrationID, function (err) {
-          if (err) {
-            console.log(err)
-            res.sendStatus(500)
-          } else {
-            res.status(200).json({
-              message: 'success'
-            })
-          }
+    }
+    if (result.length !== 0) {
+      const delibrationID = req.body.delibrationID
+      db.DeleteById('delibration', delibrationID, function (err, result) {
+        if (err) {
+          console.log(err)
+          res.sendStatus(500)
+        }
+        res.status(200).json({
+          message: 'success'
         })
-      } else {
-        res.sendStatus(403)
-      }
+      })
+    } else {
+      res.sendStatus(403)
     }
   })
 })
@@ -115,29 +109,27 @@ router.post('/createDelibration', function (req, res) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
-    } else {
-      if (result.length !== 0) {
-        const data = {
-          dName: req.body.dName,
-          startTime: req.body.startTime,
-          endTime: req.body.endTime,
-          position: req.body.position,
-          semester: req.body.semester,
-          period: req.body.period
-        }
-        db.Insert('delibration', data, function (err, result) {
-          if (err) {
-            console.log(err)
-            res.sendStatus(500)
-          } else {
-            res.status(200).json({
-              message: 'success'
-            })
-          }
-        })
-      } else {
-        res.sendStatus(403)
+    }
+    if (result.length !== 0) {
+      const data = {
+        dName: req.body.dName,
+        startTime: req.body.startTime,
+        endTime: req.body.endTime,
+        position: req.body.position,
+        semester: req.body.semester,
+        period: req.body.period
       }
+      db.Insert('delibration', data, function (err, result) {
+        if (err) {
+          console.log(err)
+          res.sendStatus(500)
+        }
+        res.status(200).json({
+          message: 'success'
+        })
+      })
+    } else {
+      res.sendStatus(403)
     }
   })
 })
@@ -149,28 +141,27 @@ router.post('/saveEditDelibration', function (req, res) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
-    } else {
-      if (result.length !== 0) {
-        const dataDelibration = {
-          dName: req.body.dName,
-          startTime: req.body.startTime,
-          endTime: req.body.endTime,
-          position: req.body.position,
-          semester: req.body.semester,
-          period: req.body.period
-        }
-        db.Update('delibration', dataDelibration, { id: req.body.delibrationID }, function (err, result) {
-          if (err) {
-            console.log(err)
-            res.sendStatus(500)
-          }
-          res.status(200).json({
-            message: 'success'
-          })
-        })
-      } else {
-        res.sendStatus(403)
+    }
+    if (result.length !== 0) {
+      const dataDelibration = {
+        dName: req.body.dName,
+        startTime: req.body.startTime,
+        endTime: req.body.endTime,
+        position: req.body.position,
+        semester: req.body.semester,
+        period: req.body.period
       }
+      db.Update('delibration', dataDelibration, { id: req.body.delibrationID }, function (err, result) {
+        if (err) {
+          console.log(err)
+          res.sendStatus(500)
+        }
+        res.status(200).json({
+          message: 'success'
+        })
+      })
+    } else {
+      res.sendStatus(403)
     }
   })
 })
@@ -183,20 +174,18 @@ router.get('/editProposals/:delibrationID', function (req, res) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
+    }
+    if (result.length !== 0) {
+      const delibrationID = req.params.delibrationID
+      db.Query('SELECT * FROM proposal where delibrationID = "' + delibrationID + '"', function (err, proposals) {
+        if (err) {
+          console.log(err)
+          res.sendStatus(500)
+        }
+        res.status(200).send(proposals)
+      })
     } else {
-      if (result.length !== 0) {
-        const delibrationID = req.params.delibrationID
-        db.Query('SELECT * FROM proposal where delibrationID = "' + delibrationID + '"', function (err, proposals) {
-          if (err) {
-            console.log(err)
-            res.sendStatus(500)
-          } else {
-            res.status(200).send(proposals)
-          }
-        })
-      } else {
-        res.sendStatus(403)
-      }
+      res.sendStatus(403)
     }
   })
 })

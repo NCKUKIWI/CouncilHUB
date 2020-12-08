@@ -10,9 +10,8 @@ router.get('/:delibrationID', function (req, res) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
-    } else {
-      res.status(200).json(result)
     }
+    res.status(200).json(result)
   })
 })
 
@@ -26,10 +25,9 @@ router.get('/:delibrationID/:proposalID', function (req, res) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
-    } else {
-      result[0].description = result[0].description.split('\n')
-      res.status(200).send(result[0])
     }
+    result[0].description = result[0].description.split('\n')
+    res.status(200).send(result[0])
   })
 })
 
@@ -41,31 +39,30 @@ router.post('/voteResults', function (req, res) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
-    } else {
-      let agree = 0
-      let disagree = 0
-      let spoil = 0
-      let total = 0
-      for (const n in votes) {
-        console.log(votes[n])
-        total = total + 1
-        if (votes[n].result === 1) {
-          agree = agree + 1
-        }
-        if (votes[n].result === 2) {
-          disagree = disagree + 1
-        }
-        if (votes[n].result === 3) {
-          spoil = spoil + 1
-        }
-      }
-      res.status(200).json({
-        amendment: isAmendment,
-        agree: agree,
-        disagree: disagree,
-        spoil: spoil
-      })
     }
+    let agree = 0
+    let disagree = 0
+    let spoil = 0
+    let total = 0
+    for (const n in votes) {
+      console.log(votes[n])
+      total = total + 1
+      if (votes[n].result === 1) {
+        agree = agree + 1
+      }
+      if (votes[n].result === 2) {
+        disagree = disagree + 1
+      }
+      if (votes[n].result === 3) {
+        spoil = spoil + 1
+      }
+    }
+    res.status(200).json({
+      amendment: isAmendment,
+      agree: agree,
+      disagree: disagree,
+      spoil: spoil
+    })
   })
 })
 
@@ -77,32 +74,30 @@ router.post('/resultsList', function (req, res) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
-    } else {
-      const data = []
-      let count = 0
-      for (const n in votesInfo) {
-        const selectUserSql = 'SELECT department, name FROM `user` WHERE studentID = "' + votesInfo[n].studentID + '"'
-        db.Query(selectUserSql, function (err, userinfo) {
-          if (err) {
-            console.log(err)
-            res.sendStatus(500)
-          } else {
-            count += 1
-            const studentVoteInfo = {
-              index: parseInt(n) + 1,
-              department: userinfo[0].department,
-              name: userinfo[0].name,
-              voteResult: votesInfo[n].result
-            }
-            // console.log("PPP: ", studentVoteInfo)
-            data.push(studentVoteInfo)
+    }
+    const data = []
+    let count = 0
+    for (const n in votesInfo) {
+      const selectUserSql = 'SELECT department, name FROM `user` WHERE studentID = "' + votesInfo[n].studentID + '"'
+      db.Query(selectUserSql, function (err, userinfo) {
+        if (err) {
+          console.log(err)
+          res.sendStatus(500)
+        }
+        count += 1
+        const studentVoteInfo = {
+          index: parseInt(n) + 1,
+          department: userinfo[0].department,
+          name: userinfo[0].name,
+          voteResult: votesInfo[n].result
+        }
+        // console.log("PPP: ", studentVoteInfo)
+        data.push(studentVoteInfo)
 
-            if (count === votesInfo.length) {
-              res.status(200).send(data)
-            }
-          }
-        })
-      }
+        if (count === votesInfo.length) {
+          res.status(200).send(data)
+        }
+      })
     }
   })
 })
@@ -116,11 +111,10 @@ router.post('/voteAmendment', function (req, res) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
-    } else {
-      res.status(200).json({
-        message: 'success'
-      })
     }
+    res.status(200).json({
+      message: 'success'
+    })
   })
 })
 
@@ -133,11 +127,10 @@ router.post('/voteResolution', function (req, res) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
-    } else {
-      res.status(200).json({
-        message: 'success'
-      })
     }
+    res.status(200).json({
+      message: 'success'
+    })
   })
 })
 
@@ -148,12 +141,18 @@ router.put('/saveEditProposals', function (req, res) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
-    } else {
-      if (result.length !== 0) {
-        const delibrationID = req.body.delibrationID
-        const proposals = req.body.proposal
-        const proposalIDList = []
-        let proposalCount = 0
+    }
+    if (result.length !== 0) {
+      const delibrationID = req.body.delibrationID
+      const proposals = req.body.proposal
+      const proposalIDList = []
+      let deleteProposalSQL = 'DELETE from `proposal` WHERE id in ('
+      db.Query('SELECT id FROM `proposal` WHERE delibrationID = "' + delibrationID + '"', function (err, result) {
+        if (err) {
+          console.log(err)
+          res.sendStatus(500)
+        }
+        let count = 0
         for (const data in proposals) {
           const proposalID = proposals[data].proposalID
           proposalIDList.push(proposalID)
@@ -170,43 +169,16 @@ router.put('/saveEditProposals', function (req, res) {
                 console.log(err)
                 res.sendStatus(500)
               }
-              proposalCount += 1
-              if (proposalCount === proposals.length) {
-                db.Query('SELECT id FROM `proposal` WHERE delibrationID = "' + delibrationID + '"', function (err, result) {
+              count += 1
+              if (count === proposals.length) {
+                db.Query(deleteProposalSQL, function (err, result) {
                   if (err) {
                     console.log(err)
                     res.sendStatus(500)
                   }
-                  if (result.length === 0) {
-                    res.status(200).json({
-                      message: 'success'
-                    })
-                  } else {
-                    let idCount = 0
-                    for (const n in result) {
-                      if (proposalIDList.includes(result[n].id)) {
-                        idCount += 1
-                        if (idCount === result.length) {
-                          res.status(200).json({
-                            message: 'success'
-                          })
-                        }
-                      } else {
-                        db.DeleteById('proposal', result[n].id, function (err) {
-                          if (err) {
-                            console.log(err)
-                            res.sendStatus(500)
-                          }
-                          idCount += 1
-                          if (idCount === result.length) {
-                            res.status(200).json({
-                              message: 'success'
-                            })
-                          }
-                        })
-                      }
-                    }
-                  }
+                  res.status(200).json({
+                    message: 'success'
+                  })
                 })
               }
             })
@@ -216,115 +188,39 @@ router.put('/saveEditProposals', function (req, res) {
                 console.log(err)
                 res.sendStatus(500)
               }
-              proposalCount += 1
-              if (proposalCount === proposals.length) {
-                db.Query('SELECT id FROM `proposal` WHERE delibrationID = "' + delibrationID + '"', function (err, result) {
+              count += 1
+              if (count === proposals.length) {
+                db.Query(deleteProposalSQL, function (err, result) {
                   if (err) {
                     console.log(err)
                     res.sendStatus(500)
                   }
-                  if (result.length === 0) {
-                    res.status(200).json({
-                      message: 'success'
-                    })
-                  } else {
-                    let idCount = 0
-                    for (const n in result) {
-                      if (proposalIDList.includes(result[n].id)) {
-                        idCount += 1
-                        if (idCount === result.length) {
-                          res.status(200).json({
-                            message: 'success'
-                          })
-                        }
-                      } else {
-                        db.DeleteById('proposal', result[n].id, function (err) {
-                          if (err) {
-                            console.log(err)
-                            res.sendStatus(500)
-                          }
-                          idCount += 1
-                          if (idCount === result.length) {
-                            res.status(200).json({
-                              message: 'success'
-                            })
-                          }
-                        })
-                      }
-                    }
-                  }
+                  res.status(200).json({
+                    message: 'success'
+                  })
                 })
               }
             })
           }
+          if (data === proposals.length) {
+            let deleteOrNot = false
+            for (const n in result) {
+              if (proposalIDList.includes(result[n].id) === false) {
+                if (deleteOrNot) {
+                  deleteProposalSQL += ', '
+                }
+                deleteProposalSQL += result[n].id
+                deleteOrNot = true
+              }
+            }
+            deleteProposalSQL += ')'
+          }
         }
-      } else {
-        res.sendStatus(403)
-      }
+      })
+    } else {
+      res.sendStatus(403)
     }
   })
 })
-
-// 新增議案
-// router.post('/createProposal', function (req, res) {
-//   const studentID = req.session.studentID
-//   db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (err, result) {
-//     if (err) {
-//       console.log(err)
-//       res.sendStatus(500)
-//     } else {
-//       if (result.length !== 0) {
-//         const data = {
-//           delibrationID: req.body.delibrationID,
-//           dept: req.body.dept,
-//           reason: req.body.reason,
-//           description: req.body.description,
-//           discussion: req.body.discussion,
-//           name: req.body.name
-//           // isVoting在資料庫裡預設為0
-//         }
-//         db.Insert('proposal', data, function (err, result) {
-//           if (err) {
-//             console.log(err)
-//             res.sendStatus(500)
-//           } else {
-//             res.status(200).json({
-//               message: 'success'
-//             })
-//           }
-//         })
-//       } else {
-//         res.sendStatus(403)
-//       }
-//     }
-//   })
-// })
-
-// // 刪除議案
-// router.post('/deleteProposal', function (req, res) {
-//   const studentID = req.session.studentID
-//   db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (err, result) {
-//     if (err) {
-//       console.log(err)
-//       res.sendStatus(500)
-//     } else {
-//       if (result.length !== 0) {
-//         const proposalID = req.body.proposalID
-//         db.DeleteById('proposal', proposalID, function (err) {
-//           if (err) {
-//             console.log(err)
-//             res.sendStatus(500)
-//           } else {
-//             res.status(200).json({
-//               message: 'success'
-//             })
-//           }
-//         })
-//       } else {
-//         res.sendStatus(403)
-//       }
-//     }
-//   })
-// })
 
 module.exports = router
