@@ -64,11 +64,14 @@ function notFound (req, res, next) {
 io.on('connection', (socket) => {
   socket.on('entryVote', (msg) => { // 點進議案觸發
     const proposalID = msg.proposalID
-    const isVotingSql = 'SELECT isVoting FROM `proposal` WHERE proposalID = ' + proposalID
-    db.Query(isVotingSql, function (voteInfo, err) {
+    const isVotingSql = 'SELECT isVoting FROM proposal WHERE id = ' + proposalID
+    db.Query(isVotingSql, function (err, voteInfo) {
+      if (err) {
+        console.log(err)
+      }
       const isVoting = voteInfo[0].isVoting
       if (isVoting === 0) {
-        io.emit('closeVote', '投票結束囉') // 告訴大家
+        io.emit('closeVote', '投票未開放') // 告訴大家
       } else if (isVoting === 1) {
         io.emit('startResolutionVote', '開始決議案投票') // 告訴大家
       } else if (isVoting === 2) {
@@ -79,31 +82,43 @@ io.on('connection', (socket) => {
 
   socket.on('startResolution', (msg) => { // 議長觸發
     const proposalID = msg.proposalID
-    const updateSql = 'UPDATE `proposal` SET isVoting = 1 WHERE proposalID = ' + proposalID
-    db.Query(updateSql, function (updateResult, err) {
-      io.broadcast.emit('startResolutionVote', '開始決議案投票') // 告訴大家
+    const updateSql = 'UPDATE `proposal` SET isVoting = 1 WHERE id = ' + proposalID
+    db.Query(updateSql, function (err, updateResult) {
+      if (err) {
+        console.log(err)
+      }
+      io.emit('startResolutionVote', '開始決議案投票') // 告訴大家
     })
   })
   socket.on('closeResolution', (msg) => { // 議長觸發
     const proposalID = msg.proposalID
-    const updateSql = 'UPDATE `proposal` SET isVoting = 0 WHERE proposalID = ' + proposalID
-    db.Query(updateSql, function (updateResult, err) {
-      io.broadcast.emit('closeResolutionVote', '決議案投票結束') // 告訴大家
+    const updateSql = 'UPDATE `proposal` SET isVoting = 0 WHERE id = ' + proposalID
+    db.Query(updateSql, function (err, updateResult) {
+      if (err) {
+        console.log(err)
+      }
+      io.emit('closeResolutionVote', '決議案投票結束') // 告訴大家
     })
   })
 
   socket.on('startAmendment', (msg) => {
     const proposalID = msg.proposalID
-    const updateSql = 'UPDATE `proposal` SET isVoting = 2 WHERE proposalID = ' + proposalID
-    db.Query(updateSql, function (updateResult, err) {
-      io.broadcast.emit('startAmendmentVote', '開始修正案投票')
+    const updateSql = 'UPDATE `proposal` SET isVoting = 2 WHERE id = ' + proposalID
+    db.Query(updateSql, function (err, updateResult) {
+      if (err) {
+        console.log(err)
+      }
+      io.emit('startAmendmentVote', '開始修正案投票')
     })
   })
   socket.on('closeAmendment', (msg) => {
     const proposalID = msg.proposalID
-    const updateSql = 'UPDATE `proposal` SET isVoting = 0 WHERE proposalID = ' + proposalID
-    db.Query(updateSql, function (updateResult, err) {
-      io.broadcast.emit('closeAmendmentVote', '修正案投票結束') // 同意不同意關掉
+    const updateSql = 'UPDATE `proposal` SET isVoting = 0 WHERE id = ' + proposalID
+    db.Query(updateSql, function (err, updateResult) {
+      if (err) {
+        console.log(err)
+      }
+      io.emit('closeAmendmentVote', '修正案投票結束') // 同意不同意關掉
     })
     // 如果同意>反對 議長自己去改資料XD
   })

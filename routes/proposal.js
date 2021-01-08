@@ -31,10 +31,11 @@ router.get('/:delibrationID/:proposalID', function (req, res) {
   })
 })
 
+// 已測試
 router.post('/voteResults', function (req, res) {
   const proposalID = req.body.proposalID
-  const isAmendment = req.body.amendment
-  const selectResultSql = 'SELECT result FROM `vote` WHERE proposalID = ' + proposalID + ' AND amendment = ' + isAmendment
+  const isAmendment = req.body.isAmendment
+  const selectResultSql = 'SELECT studentID, result FROM `vote` WHERE proposalID = ' + proposalID + ' AND amendment = ' + isAmendment
   db.Query(selectResultSql, function (err, votes) {
     if (err) {
       console.log(err)
@@ -45,7 +46,6 @@ router.post('/voteResults', function (req, res) {
     let spoil = 0
     let total = 0
     for (const n in votes) {
-      console.log(votes[n])
       total = total + 1
       if (votes[n].result === 1) {
         agree = agree + 1
@@ -57,28 +57,10 @@ router.post('/voteResults', function (req, res) {
         spoil = spoil + 1
       }
     }
-    res.status(200).json({
-      amendment: isAmendment,
-      agree: agree,
-      disagree: disagree,
-      spoil: spoil
-    })
-  })
-})
-
-router.post('/resultsList', function (req, res) {
-  const proposalID = req.body.proposalID
-  const isAmendment = req.body.amendment
-  const selectVoteSql = 'SELECT studentID, result FROM `vote` WHERE proposalID = ' + proposalID + ' and amendment = ' + isAmendment
-  db.Query(selectVoteSql, function (err, votesInfo) {
-    if (err) {
-      console.log(err)
-      res.sendStatus(500)
-    }
     const data = []
     let count = 0
-    for (const n in votesInfo) {
-      const selectUserSql = 'SELECT department, name FROM `user` WHERE studentID = "' + votesInfo[n].studentID + '"'
+    for (const n in votes) {
+      const selectUserSql = 'SELECT department, name FROM `user` WHERE studentID = "' + votes[n].studentID + '"'
       db.Query(selectUserSql, function (err, userinfo) {
         if (err) {
           console.log(err)
@@ -89,54 +71,84 @@ router.post('/resultsList', function (req, res) {
           index: parseInt(n) + 1,
           department: userinfo[0].department,
           name: userinfo[0].name,
-          voteResult: votesInfo[n].result
+          voteResult: votes[n].result
         }
         // console.log("PPP: ", studentVoteInfo)
         data.push(studentVoteInfo)
 
-        if (count === votesInfo.length) {
-          res.status(200).send(data)
+        if (count === votes.length) {
+          res.status(200).json({
+            amendment: isAmendment,
+            agree: agree,
+            disagree: disagree,
+            spoil: spoil,
+            resultList: data
+          })
         }
       })
     }
   })
 })
 
-router.post('/voteAmendment', function (req, res) {
+// 已測試
+// 判斷是否投過票
+router.post('/isVoted', function (req, res) {
   const proposalID = req.body.proposalID
-  const studentID = req.body.studentID
-  const result = req.body.result
-  const voteResultSql = 'INSERT INTO vote (proposalID, studentID, result, amendment) VALUES ( ' + proposalID + ', "' + studentID + '", ' + result + ', 1)'
-  db.Query(voteResultSql, function (err, voteResult) {
+  const studentID = 'H34066000'
+  const isAmendment = req.body.isAmendment
+  const isVotedSql = 'SELECT * from vote WHERE proposalID = ' + proposalID + ' and studentID = "' + studentID + '" and amendment = ' + isAmendment
+  db.Query(isVotedSql, function (err, result) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
     }
-    res.status(200).json({
-      message: 'success'
-    })
+    if (result.length > 0) {
+      res.status(200).json({
+        message: true,
+        result: result[0].result
+      })
+    } else {
+      res.status(200).json({
+        message: false
+      })
+    }
   })
 })
 
-router.post('/voteResolution', function (req, res) {
+// 已測試
+router.post('/vote', function (req, res) {
   const proposalID = req.body.proposalID
-  const studentID = req.body.studentID
+  const studentID = 'H34066000'
   const result = req.body.result
-  const voteResultSql = 'INSERT INTO vote (proposalID, studentID, result, amendment) VALUES ( ' + proposalID + ', "' + studentID + '", ' + result + ', 0)'
-  db.Query(voteResultSql, function (err, voteResult) {
+  const isAmendment = req.body.isAmendment
+  const isVotedSql = 'SELECT * from vote WHERE proposalID = ' + proposalID + ' and studentID = "' + studentID + '" and amendment = ' + isAmendment
+  const voteResultSql = 'INSERT INTO vote (proposalID, studentID, result, amendment) VALUES ( ' + proposalID + ', "' + studentID + '", ' + result + ', ' + isAmendment + ')'
+  db.Query(isVotedSql, function (err, result) {
     if (err) {
       console.log(err)
       res.sendStatus(500)
     }
-    res.status(200).json({
-      message: 'success'
-    })
+    if (result.length === 0) {
+      db.Query(voteResultSql, function (err, voteResult) {
+        if (err) {
+          console.log(err)
+          res.sendStatus(500)
+        }
+        res.status(200).json({
+          message: 'success'
+        })
+      })
+    } else {
+      res.status(200).json({
+        message: 'voted'
+      })
+    }
   })
 })
 
 // 儲存修改的議案
 router.put('/saveEditProposals', function (req, res) {
-  const studentID = req.session.studentID
+  const studentID = 'H34066000'
   db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (err, result) {
     if (err) {
       console.log(err)
@@ -154,7 +166,7 @@ router.put('/saveEditProposals', function (req, res) {
         }
         let count = 0
         for (const data in proposals) {
-          const proposalID = proposals[data].proposalID
+          const proposalID = proposals[data].id
           proposalIDList.push(proposalID)
           const dataProposal = {
             delibrationID: delibrationID,
@@ -171,15 +183,15 @@ router.put('/saveEditProposals', function (req, res) {
               }
               count += 1
               if (count === proposals.length) {
-                db.Query(deleteProposalSQL, function (err, result) {
-                  if (err) {
-                    console.log(err)
-                    res.sendStatus(500)
-                  }
-                  res.status(200).json({
-                    message: 'success'
-                  })
-                })
+                // db.Query(deleteProposalSQL, function (err, result) {
+                //   if (err) {
+                //     console.log(err)
+                //     res.sendStatus(500)
+                //   }
+                //   res.status(200).json({
+                //     message: 'success'
+                //   })
+                // })
               }
             })
           } else {
