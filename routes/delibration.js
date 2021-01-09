@@ -25,7 +25,7 @@ router.get('/', function (req, res) {
             res.sendStatus(500)
           }
           if (positionResult.length === 0) {
-            db.Query('select * from delibration where position is null;', function (err, delibrationResult) {
+            db.Query('select * from delibration where position is null and startTime <= current_date and endTime >= current_date;', function (err, delibrationResult) {
               if (err) {
                 console.log(err)
                 res.sendStatus(500)
@@ -45,7 +45,7 @@ router.get('/', function (req, res) {
                 sql = sql + ','
               }
             }
-            sql = sql + ' or position is null;'
+            sql = sql + ' or position is null and startTime <= current_date and endTime >= current_date;'
             // console.log(sql);
             db.Query(sql, function (err, delibrationResult) {
               if (err) {
