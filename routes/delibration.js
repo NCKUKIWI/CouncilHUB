@@ -8,7 +8,7 @@ const delibrationCacheKey = cache.delibrationCacheKey
 // 已測試
 // 取得權限內議事內容
 router.get('/', function (req, res) {
-  const studentID = 'H34066000'
+  const studentID = req.session.studentID
   if (studentID) {
     redis.get(delibrationCacheKey(studentID), function (err, reply) {
       if (err) {
@@ -80,7 +80,7 @@ router.get('/leader', function (req, res) {
 // 已測試
 // 刪除議事
 router.delete('/deleteDelibration', function (req, res) {
-  const studentID = 'H34066000'
+  const studentID = req.session.studentID
   db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (err, result) {
     if (err) {
       console.log(err)
@@ -106,7 +106,7 @@ router.delete('/deleteDelibration', function (req, res) {
 // 已測試
 // 新增議事
 router.post('/createDelibration', function (req, res) {
-  const studentID = 'H34066000'
+  const studentID = req.session.studentID
   db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (err, result) {
     if (err) {
       console.log(err)
@@ -138,7 +138,7 @@ router.post('/createDelibration', function (req, res) {
 
 // 儲存修改的議事
 router.post('/saveEditDelibration', function (req, res) {
-  const studentID = 'H34066000'
+  const studentID = req.session.studentID
   db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (err, result) {
     if (err) {
       console.log(err)
@@ -171,7 +171,7 @@ router.post('/saveEditDelibration', function (req, res) {
 // 已測試
 // 取得當前議事下的所有議案供修改
 router.get('/editProposals/:delibrationID', function (req, res) {
-  const studentID = 'H34066000'
+  const studentID = req.session.studentID
   db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (err, result) {
     if (err) {
       console.log(err)

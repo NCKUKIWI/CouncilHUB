@@ -94,7 +94,7 @@ router.post('/voteResults', function (req, res) {
 // 判斷是否投過票
 router.post('/isVoted', function (req, res) {
   const proposalID = req.body.proposalID
-  const studentID = 'H34066000'
+  const studentID = req.session.studentID
   const isAmendment = req.body.isAmendment
   const isVotedSql = 'SELECT * from vote WHERE proposalID = ' + proposalID + ' and studentID = "' + studentID + '" and amendment = ' + isAmendment
   db.Query(isVotedSql, function (err, result) {
@@ -118,7 +118,7 @@ router.post('/isVoted', function (req, res) {
 // 已測試
 router.post('/vote', function (req, res) {
   const proposalID = req.body.proposalID
-  const studentID = 'H34066000'
+  const studentID = req.session.studentID
   const result = req.body.result
   const isAmendment = req.body.isAmendment
   const isVotedSql = 'SELECT * from vote WHERE proposalID = ' + proposalID + ' and studentID = "' + studentID + '" and amendment = ' + isAmendment
@@ -148,7 +148,7 @@ router.post('/vote', function (req, res) {
 
 // 儲存修改的議案
 router.put('/saveEditProposals', function (req, res) {
-  const studentID = 'H34066000'
+  const studentID = req.session.studentID
   db.Query('SELECT name FROM `position` WHERE studentID = "' + studentID + '" AND name = "議長"', function (err, result) {
     if (err) {
       console.log(err)
