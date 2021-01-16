@@ -26,104 +26,6 @@ exports.DeleteById = function DeleteById (table, id, callback) {
   })
 }
 
-exports.DeleteByColumn = function DeleteByColumn (table, conditions, callback) {
-  const condition = conditionjoin(conditions)
-  const sql = 'DELETE FROM ' + table + ' WHERE ' + condition
-  console.log(sql)
-  connection.query(sql, function (err, results) {
-    if (err) throw err
-    console.log('DELETE Success!')
-    callback(err)
-  })
-}
-
-exports.GetAll = function GetAll (table, order, callback) {
-  const sql = 'SELECT * FROM ' + table + ' ORDER BY ' + order.column + ' ' + order.order
-  console.log(sql)
-  connection.query(sql, function (err, results, fields) {
-    if (err) throw err
-    callback(results)
-  })
-}
-
-exports.GetColumn = function GetColumn (table, cols, order, callback) {
-  let columns = ''
-  for (const i in cols) {
-    columns += cols[i]
-    if (i !== cols.length - 1) {
-      columns += ','
-    }
-  }
-  const sql = 'SELECT ' + columns + ' FROM ' + table + ' ORDER BY ' + order.column + ' ' + order.order
-  console.log(sql)
-  connection.query(sql, function (err, results, fields) {
-    if (err) throw err
-    callback(results)
-  })
-}
-
-exports.FindbyID = function FindbyID (table, id, callback) {
-  const sql = 'SELECT * FROM ' + table + ' WHERE id = ' + id
-  console.log(sql)
-  connection.query(sql, function (err, results, fields) {
-    if (err) throw err
-    callback(results[0])
-  })
-}
-
-exports.FindbyColumn = function FindbyColumn (table, cols, conditions, callback) {
-  let columns = ''
-  for (const i in cols) {
-    columns += cols[i]
-    if (i !== (cols.length - 1)) {
-      columns += ','
-      console.log('columns: ' + columns + '; i: ' + i + '; cols.length: ' + (cols.length - 1))
-    }
-  }
-  const condition = conditionjoin(conditions)
-  const sql = 'SELECT ' + columns + ' FROM ' + table + ' WHERE ' + condition
-  console.log(sql)
-  connection.query(sql, function (err, results, fields) {
-    if (err) throw err
-    callback(results)
-  })
-}
-
-exports.FindbyColumnClear = function FindbyColumnClear (table, cols, conditions, callback) {
-  let ctr = 0
-  let columns = ''
-  for (const i in cols) {
-    columns += cols[i]
-    if (i !== cols.length - 1) {
-      columns += ','
-    }
-  }
-  let condition = ''
-  for (const idx in conditions) {
-    const value = conditions[idx]
-    condition += ` ${idx}=${value} `
-    ctr++
-    if (ctr !== Object.keys(conditions).length) { condition += 'AND' }
-  };
-
-  const sql = 'SELECT ' + columns + ' FROM ' + table + ' WHERE' + condition
-  console.log(sql)
-  connection.query(sql, function (err, results, fields) {
-    if (err) throw err
-    callback(results)
-  })
-}
-
-exports.FindbyColumnOrder = function FindbyColumnOrder (table, conditions, order, callback) {
-  const condition = conditionjoin(conditions)
-  const sql = 'SELECT * FROM ' + table + ' WHERE ' + condition + ' ORDER BY ' + order.column + ' ' + order.order
-  console.log(sql)
-  connection.query(sql, function (err, results, fields) {
-    if (err) throw err
-    callback(results)
-  })
-}
-
 exports.Update = function Update (table, datas, conditions, callback) {
   const condition = conditionjoin(conditions)
   let data = ''
@@ -152,15 +54,6 @@ exports.Update = function Update (table, datas, conditions, callback) {
   connection.query(sql, function (err, results) {
     // if (err) throw err
     callback(err, results)
-  })
-}
-
-exports.UpdatePlusone = function UpdatePlusone (table, col, id, callback) {
-  const sql = 'UPDATE ' + table + ' SET ' + col + ' = ' + col + '+1 WHERE id = ' + id
-  console.log(sql)
-  connection.query(sql, function (err, results) {
-    if (err) throw err
-    callback(results)
   })
 }
 
