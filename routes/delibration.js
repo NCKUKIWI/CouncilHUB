@@ -93,8 +93,14 @@ router.delete('/deleteDelibration', function (req, res) {
           console.log(err)
           res.sendStatus(500)
         }
-        res.status(200).json({
-          message: 'success'
+        db.Query('DELETE FROM `proposal` WHERE delibrationID = ' + delibrationID, function (err, result) {
+          if (err) {
+            console.log(err)
+            res.sendStatus(500)
+          }
+          res.status(200).json({
+            message: 'success'
+          })
         })
       })
     } else {

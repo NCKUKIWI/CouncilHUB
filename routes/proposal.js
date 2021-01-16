@@ -158,7 +158,6 @@ router.put('/saveEditProposals', function (req, res) {
       const delibrationID = req.body.delibrationID
       const proposals = req.body.proposal
       const proposalIDList = []
-      let deleteProposalSQL = 'DELETE from `proposal` WHERE id in ('
       db.Query('SELECT id FROM `proposal` WHERE delibrationID = "' + delibrationID + '"', function (err, result) {
         if (err) {
           console.log(err)
@@ -183,15 +182,32 @@ router.put('/saveEditProposals', function (req, res) {
               }
               count += 1
               if (count === proposals.length) {
-                // db.Query(deleteProposalSQL, function (err, result) {
-                //   if (err) {
-                //     console.log(err)
-                //     res.sendStatus(500)
-                //   }
-                //   res.status(200).json({
-                //     message: 'success'
-                //   })
-                // })
+                let deleteOrNot = false
+                let deleteSQL = ''
+                for (const n in result) {
+                  if (proposalIDList.includes(result[n].id) === false) {
+                    if (deleteOrNot) {
+                      deleteSQL += ', '
+                    }
+                    deleteSQL += result[n].id
+                    deleteOrNot = true
+                  }
+                }
+                db.Query('DELETE from `proposal` WHERE id in (' + deleteSQL + ')', function (err, result) {
+                  if (err) {
+                    console.log(err)
+                    res.sendStatus(500)
+                  }
+                  db.Query('DELETE from `vote` WHERE proposalID in (' + deleteSQL + ')', function (err, result) {
+                    if (err) {
+                      console.log(err)
+                      res.sendStatus(500)
+                    }
+                    res.status(200).json({
+                      message: 'success'
+                    })
+                  })
+                })
               }
             })
           } else {
@@ -202,30 +218,34 @@ router.put('/saveEditProposals', function (req, res) {
               }
               count += 1
               if (count === proposals.length) {
-                db.Query(deleteProposalSQL, function (err, result) {
+                let deleteOrNot = false
+                let deleteSQL = ''
+                for (const n in result) {
+                  if (proposalIDList.includes(result[n].id) === false) {
+                    if (deleteOrNot) {
+                      deleteSQL += ', '
+                    }
+                    deleteSQL += result[n].id
+                    deleteOrNot = true
+                  }
+                }
+                db.Query('DELETE from `proposal` WHERE id in (' + deleteSQL + ')', function (err, result) {
                   if (err) {
                     console.log(err)
                     res.sendStatus(500)
                   }
-                  res.status(200).json({
-                    message: 'success'
+                  db.Query('DELETE from `vote` WHERE proposalID in (' + deleteSQL + ')', function (err, result) {
+                    if (err) {
+                      console.log(err)
+                      res.sendStatus(500)
+                    }
+                    res.status(200).json({
+                      message: 'success'
+                    })
                   })
                 })
               }
             })
-          }
-          if (data === proposals.length) {
-            let deleteOrNot = false
-            for (const n in result) {
-              if (proposalIDList.includes(result[n].id) === false) {
-                if (deleteOrNot) {
-                  deleteProposalSQL += ', '
-                }
-                deleteProposalSQL += result[n].id
-                deleteOrNot = true
-              }
-            }
-            deleteProposalSQL += ')'
           }
         }
       })
