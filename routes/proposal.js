@@ -33,7 +33,7 @@ router.get('/:delibrationID/:proposalID', function (req, res, next) {
         return next(err)
       }
       if (result.length === 0) {
-        return res.send([])
+        return res.send({})
       }
       result[0].description = result[0].description.split('\n')
       res.status(200).send(result[0])
