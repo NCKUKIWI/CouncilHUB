@@ -1,15 +1,13 @@
 const mysql = require('mysql')
-const config = require('../config')
-
 let connection
 
 function handleDisconnect () {
   connection = mysql.createConnection({
-    host: config.db.host,
-    user: config.db.user,
-    password: config.db.pw,
-    database: config.db.database,
-    port: config.db.port
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PW,
+    database: process.env.DB_DATABASE,
+    port: process.env.DB_PORT
   })
 
   connection.connect(function (err) {

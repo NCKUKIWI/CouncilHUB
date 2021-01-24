@@ -10,3 +10,4 @@ gulpfile.js
 ngrok
 *.sh
 ngrok.exe
+.env

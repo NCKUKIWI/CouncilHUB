@@ -1,10 +1,9 @@
 const redis = require('redis')
-const config = require('../config')
 
 const client = redis.createClient({
-  host: config.redis.host,
+  host: process.env.REDIS_HOST,
   port: 6379,
-  password: config.redis.pw,
+  password: process.env.REDIS_PW,
   db: 1
 })
 
