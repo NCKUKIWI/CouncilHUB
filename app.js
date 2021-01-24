@@ -35,7 +35,7 @@ app.use(express.static('dist', {
   maxAge: 24 * 60 * 60
 }))
 
-const http = app.listen(3000, function () {
+const http = app.listen(process.env.PORT || 3000, function () {
   console.log('Example app listening on port 3000!')
 })
 const io = socket(http)
