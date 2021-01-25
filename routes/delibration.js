@@ -108,8 +108,14 @@ router.delete('/deleteDelibration', function (req, res, next) {
               res.status(500)
               return next(err)
             }
-            res.status(200).json({
-              message: 'success'
+            redis.flushdb(function (err, succeeded) {
+              if (err) {
+                res.status(500)
+                return next(err)
+              }
+              res.status(200).json({
+                message: 'success'
+              })
             })
           })
         })
@@ -147,8 +153,14 @@ router.post('/createDelibration', function (req, res, next) {
             res.status(500)
             return next(err)
           }
-          res.status(200).json({
-            message: 'success'
+          redis.flushdb(function (err, succeeded) {
+            if (err) {
+              res.status(500)
+              return next(err)
+            }
+            res.status(200).json({
+              message: 'success'
+            })
           })
         })
       } else {
@@ -188,8 +200,14 @@ router.post('/saveEditDelibration', function (req, res, next) {
             res.status(500)
             return next(err)
           }
-          res.status(200).json({
-            message: 'success'
+          redis.flushdb(function (err, succeeded) {
+            if (err) {
+              res.status(500)
+              return next(err)
+            }
+            res.status(200).json({
+              message: 'success'
+            })
           })
         })
       } else {
