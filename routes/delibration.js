@@ -26,24 +26,32 @@ router.get('/', function (req, res, next) {
               return next(err)
             }
             if (positionResult.length === 0) {
+              //職位為空
               db.Query('select * from delibration where position is null and startTime <= current_date and endTime >= current_date;', function (err, delibrationResult) {
                 if (err) {
                   res.status(500)
                   return next(err)
                 }
                 redis.set(delibrationCacheKey(studentID), JSON.stringify(delibrationResult))
+                //JSON.stringify 將 Javascript 物件轉為 JSON 字串
                 res.status(200).send(delibrationResult)
               })
             } else {
+              //職位不為空
               let sql = 'select * from delibration where position in ('
+              //多重符合 in ()
               console.log('position result: ' + positionResult)
               for (const n in positionResult) {
+                //for positionResult 裡的第n筆
                 console.log('index:' + n + ', position:' + positionResult[n].name + '\n')
                 sql = sql + '"' + positionResult[n].name + '"'
                 if (parseInt(n) === positionResult.length - 1) {
+                  //parseInt 將輸入的字串轉成整數
                   sql = sql + ')'
+                  //已經到最後一筆
                 } else {
                   sql = sql + ','
+                  //還沒到最後一筆
                 }
               }
               sql = sql + ' or position is null and startTime <= current_date and endTime >= current_date;'
@@ -53,7 +61,7 @@ router.get('/', function (req, res, next) {
                   res.status(500)
                   return next(err)
                 }
-                redis.set(delibrationCacheKey(studentID), JSON.stringify(delibrationResult))
+                redis.set(delibrationCacheKey(studentID), JSON.stringify(delibrationResult))//?
                 res.status(200).send(delibrationResult)
               })
             }
@@ -74,11 +82,11 @@ router.get('/', function (req, res, next) {
 router.get('/leader', function (req, res, next) {
   try {
     db.Query('SELECT * FROM delibration order by startTime DESC', function (err, delibrations) {
-      if (err) {
-        res.status(500)
+      if (err){
+        res.status(500)//500伺服器錯誤
         return next(err)
       }
-      res.status(200).send(delibrations)
+      res.status(200).send(delibrations)//200成功
     })
   } catch (err) {
     res.status(500)
@@ -214,6 +222,7 @@ router.get('/editProposals/:delibrationID', function (req, res, next) {
       }
       if (result.length !== 0) {
         const delibrationID = req.params.delibrationID
+        //從url取得變數資料
         db.Query('SELECT * FROM proposal where delibrationID = "' + delibrationID + '"', function (err, proposals) {
           if (err) {
             res.status(500)
